@@ -1,0 +1,28 @@
+@model RVPark.Models.RvSite
+
+@{
+    ViewData["Title"] = "Delete RV Site";
+}
+
+<h1>Delete RV Site</h1>
+
+<div class="alert alert-warning mt-3">
+    Are you sure you want to delete site @Model.SiteNumber?
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SiteNumber)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(model => model.SiteNumber)</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.MaxRvLength)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(model => model.MaxRvLength) ft</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.NightlyRate)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(model => model.NightlyRate)</dd>
+</dl>
+
+<form asp-action="Delete">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+</form>

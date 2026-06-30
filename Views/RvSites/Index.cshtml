@@ -1,0 +1,51 @@
+@model IEnumerable<RVPark.Models.RvSite>
+
+@{
+    ViewData["Title"] = "RV Sites";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="mb-0">RV Sites</h1>
+    <a class="btn btn-primary" asp-action="Create">Add Site</a>
+</div>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.SiteNumber)</th>
+            <th>@Html.DisplayNameFor(model => model.MaxRvLength)</th>
+            <th>@Html.DisplayNameFor(model => model.NightlyRate)</th>
+            <th>@Html.DisplayNameFor(model => model.HookupType)</th>
+            <th>@Html.DisplayNameFor(model => model.IsAvailable)</th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model)
+{
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.SiteNumber)</td>
+            <td>@Html.DisplayFor(modelItem => item.MaxRvLength) ft</td>
+            <td>@Html.DisplayFor(modelItem => item.NightlyRate)</td>
+            <td>@Html.DisplayFor(modelItem => item.HookupType)</td>
+            <td>
+                @if (item.IsAvailable)
+                {
+                    <span class="badge text-bg-success">Available</span>
+                }
+                else
+                {
+                    <span class="badge text-bg-secondary">Unavailable</span>
+                }
+            </td>
+            <td class="text-end">
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                <span class="text-muted mx-1">|</span>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                <span class="text-muted mx-1">|</span>
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

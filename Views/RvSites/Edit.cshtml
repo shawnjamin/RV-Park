@@ -1,0 +1,48 @@
+@model RVPark.Models.RvSite
+
+@{
+    ViewData["Title"] = "Edit RV Site";
+}
+
+<h1>Edit RV Site</h1>
+
+<form asp-action="Edit" class="mt-3">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="SiteNumber" class="form-label"></label>
+        <input asp-for="SiteNumber" class="form-control" />
+        <span asp-validation-for="SiteNumber" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MaxRvLength" class="form-label"></label>
+        <input asp-for="MaxRvLength" class="form-control" />
+        <span asp-validation-for="MaxRvLength" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NightlyRate" class="form-label"></label>
+        <input asp-for="NightlyRate" class="form-control" />
+        <span asp-validation-for="NightlyRate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="HookupType" class="form-label"></label>
+        <input asp-for="HookupType" class="form-control" />
+        <span asp-validation-for="HookupType" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsAvailable" class="form-check-input" />
+        <label asp-for="IsAvailable" class="form-check-label"></label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
