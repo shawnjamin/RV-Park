@@ -1,0 +1,160 @@
+@startuml
+
+title RV Park Reservation System - EF Core Model Types
+
+hide circle
+skinparam linetype ortho
+
+/'
+    EF Core model notes:
+    - This diagram shows C# model property types, not SQLite storage types.
+    - EF Core maps these types to SQLite-compatible columns through the provider.
+    - Money is modeled as decimal for clear, database-agnostic C# usage.
+    - Date-only business ranges use DateOnly; timestamps use DateTime.
+    - Enums may be stored as integers by default or as strings with value converters.
+'/
+
+enum EmployeeAccessLevel {
+    Admin
+    Manager
+    Staff
+}
+
+enum ReservationStatus {
+    PendingPayment
+    Confirmed
+    CheckedIn
+    Completed
+    Cancelled
+}
+
+enum PaymentMethod {
+    Cash
+    Card
+    Check
+    Stripe
+}
+
+enum BillType {
+    SiteCharge
+    LateFee
+    CancellationFee
+    EarlyCheckInFee
+    LateCheckOutFee
+}
+
+enum HookupType {
+    FullHookup
+    PartialHookup
+    NoHookup
+}
+
+entity User {
+    Id : int <<pk>>
+    --
+    Email : string
+    PasswordHash : string
+    CreatedAt : DateTime
+}
+
+entity Customer {
+    Id : int <<pk>> <<fk:User.Id>>
+    --
+    FirstName : string
+    LastName : string
+    Phone : string?
+    Email : string?
+}
+
+entity Employee {
+    Id : int <<pk>> <<fk:User.Id>>
+    --
+    FirstName : string
+    LastName : string
+    AccessLevel : EmployeeAccessLevel
+    IsLocked : bool
+}
+
+entity SiteType {
+    Id : int <<pk>>
+    --
+    Name : string
+    Description : string?
+    Price : decimal
+    IsActive : bool
+}
+
+entity Site {
+    Id : int <<pk>>
+    --
+    SiteTypeId : int <<fk:SiteType.Id>>
+    SiteNumber : string
+    HookupType : HookupType
+    SizeSqft : int?
+    PhotoUrl : string?
+    Notes : string?
+    IsActive : bool
+}
+
+entity Reservation {
+    Id : int <<pk>>
+    --
+    ReservationNumber : string
+    CustomerId : int <<fk:Customer.Id>>
+    SiteId : int <<fk:Site.Id>>
+    --
+    SpecialRequestsOrNotes : string?
+    AdultCount : int
+    ChildCount : int
+    PetCount : int
+    PetNotes : string?
+    StartDate : DateOnly
+    EndDate : DateOnly
+    Status : ReservationStatus
+    CreatedAt : DateTime
+    CancelledAt : DateTime?
+    CheckedInAt : DateTime?
+    CheckedOutAt : DateTime?
+}
+note right of Reservation
+    Completed, in-progress, and upcoming
+    report groups can be derived from
+    Status plus StartDate and EndDate.
+end note
+
+entity Bill {
+    Id : int <<pk>>
+    --
+    ReservationId : int <<fk:Reservation.Id>>
+    Type : BillType
+    Description : string?
+    Amount : decimal
+    CreatedAt : DateTime
+}
+
+entity Payment {
+    Id : int <<pk>>
+    --
+    BillId : int <<fk:Bill.Id>>
+    PaymentMethod : PaymentMethod
+    StripeTransactionId : string?
+    Notes : string?
+    Amount : decimal
+    PaidAt : DateTime
+}
+
+/'
+    Navigation-property relationships
+'/
+
+User ||--o| Customer
+User ||--o| Employee
+
+SiteType ||--o{ Site
+Site ||--o{ Reservation
+
+Customer ||--o{ Reservation
+Reservation ||--o{ Bill
+Bill ||--o{ Payment
+
+@enduml
