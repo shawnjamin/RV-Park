@@ -1,0 +1,17 @@
+@model string
+
+@switch (Model)
+{
+    case "Completed":
+        <span class="badge rounded-pill bg-success">Completed</span>
+        break;
+    case "In progress":
+        <span class="badge rounded-pill bg-info text-dark">In progress</span>
+        break;
+    case "Upcoming":
+        <span class="badge rounded-pill bg-primary">Upcoming</span>
+        break;
+    default:
+        <span class="badge rounded-pill bg-secondary">@Model</span>
+        break;
+}
