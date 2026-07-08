@@ -1,0 +1,19 @@
+@model int
+
+<div class="btn-group shadow-sm" role="group" aria-label="Action Buttons">
+    
+    <a asp-action="Edit" asp-route-id="@Model" class="btn btn-sm btn-outline-primary">
+        Edit
+    </a>
+
+    <a asp-action="Details" asp-route-id="@Model" class="btn btn-sm btn-outline-info">
+        Details
+    </a>
+
+    <button type="button" class="btn btn-sm btn-outline-danger" 
+            data-bs-toggle="modal" 
+            data-bs-target="#deleteModal-@Model">
+        Delete
+    </button>
+
+</div>

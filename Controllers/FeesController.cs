@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace RVPark.Controllers
 {
-    public class PricingController : Controller
+    public class FeesController : Controller
     {
         public IActionResult Index() 
         {
