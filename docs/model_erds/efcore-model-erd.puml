@@ -10,7 +10,6 @@ skinparam linetype ortho
     - This diagram shows C# model property types, not SQLite storage types.
     - EF Core maps these types to SQLite-compatible columns through the provider.
     - Money is modeled as decimal for clear, database-agnostic C# usage.
-    - Date-only business ranges use DateOnly; timestamps use DateTime.
     - Enums may be stored as integers by default or as strings with value converters.
 '/
 
@@ -108,8 +107,8 @@ entity Reservation {
     ChildCount : int
     PetCount : int
     PetNotes : string?
-    StartDate : DateOnly
-    EndDate : DateOnly
+    StartDate : DateTime
+    EndDate : DateTime
     Status : ReservationStatus
     CreatedAt : DateTime
     CancelledAt : DateTime?
