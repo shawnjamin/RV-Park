@@ -2,7 +2,12 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
 
-var builder = WebApplication.CreateBuilder(args);
+var seedRequested = args.Contains("--seed", StringComparer.OrdinalIgnoreCase);
+var builderArgs = args
+    .Where(arg => !arg.Equals("--seed", StringComparison.OrdinalIgnoreCase))
+    .ToArray();
+
+var builder = WebApplication.CreateBuilder(builderArgs);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
 EnsureSqliteDirectoryExists(connectionString);
@@ -19,6 +24,22 @@ if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
     await using var scope = app.Services.CreateAsyncScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await dbContext.Database.MigrateAsync();
+}
+
+if (seedRequested || app.Configuration.GetValue<bool>("Database:SeedOnStartup"))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("DatabaseSeeder");
+
+    await DatabaseSeeder.SeedAsync(dbContext, logger);
+}
+
+if (seedRequested)
+{
+    return;
 }
 
 // Configure the HTTP request pipeline.

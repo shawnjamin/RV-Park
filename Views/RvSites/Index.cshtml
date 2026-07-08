@@ -1,4 +1,4 @@
-@model IEnumerable<RVPark.Models.RvSite>
+@model IEnumerable<RVPark.Models.Site>
 
 @{
     ViewData["Title"] = "RV Sites";
@@ -13,10 +13,10 @@
     <thead>
         <tr>
             <th>@Html.DisplayNameFor(model => model.SiteNumber)</th>
-            <th>@Html.DisplayNameFor(model => model.MaxRvLength)</th>
-            <th>@Html.DisplayNameFor(model => model.NightlyRate)</th>
+            <th>@Html.DisplayNameFor(model => model.SiteType)</th>
             <th>@Html.DisplayNameFor(model => model.HookupType)</th>
-            <th>@Html.DisplayNameFor(model => model.IsAvailable)</th>
+            <th>@Html.DisplayNameFor(model => model.SizeSqft)</th>
+            <th>@Html.DisplayNameFor(model => model.IsActive)</th>
             <th class="text-end">Actions</th>
         </tr>
     </thead>
@@ -25,17 +25,17 @@
 {
         <tr>
             <td>@Html.DisplayFor(modelItem => item.SiteNumber)</td>
-            <td>@Html.DisplayFor(modelItem => item.MaxRvLength) ft</td>
-            <td>@Html.DisplayFor(modelItem => item.NightlyRate)</td>
+            <td>@Html.DisplayFor(modelItem => item.SiteType!.Name)</td>
             <td>@Html.DisplayFor(modelItem => item.HookupType)</td>
+            <td>@Html.DisplayFor(modelItem => item.SizeSqft)</td>
             <td>
-                @if (item.IsAvailable)
+                @if (item.IsActive)
                 {
-                    <span class="badge text-bg-success">Available</span>
+                    <span class="badge text-bg-success">Active</span>
                 }
                 else
                 {
-                    <span class="badge text-bg-secondary">Unavailable</span>
+                    <span class="badge text-bg-secondary">Inactive</span>
                 }
             </td>
             <td class="text-end">

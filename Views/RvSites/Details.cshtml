@@ -1,4 +1,4 @@
-@model RVPark.Models.RvSite
+@model RVPark.Models.Site
 
 @{
     ViewData["Title"] = "RV Site Details";
@@ -10,24 +10,30 @@
     <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SiteNumber)</dt>
     <dd class="col-sm-9">@Html.DisplayFor(model => model.SiteNumber)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.MaxRvLength)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.MaxRvLength) ft</dd>
-
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.NightlyRate)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.NightlyRate)</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SiteType)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(model => model.SiteType!.Name)</dd>
 
     <dt class="col-sm-3">@Html.DisplayNameFor(model => model.HookupType)</dt>
     <dd class="col-sm-9">@Html.DisplayFor(model => model.HookupType)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.IsAvailable)</dt>
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SizeSqft)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(model => model.SizeSqft)</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.PhotoUrl)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(model => model.PhotoUrl)</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Notes)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(model => model.Notes)</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.IsActive)</dt>
     <dd class="col-sm-9">
-        @if (Model.IsAvailable)
+        @if (Model.IsActive)
         {
-            <span class="badge text-bg-success">Available</span>
+            <span class="badge text-bg-success">Active</span>
         }
         else
         {
-            <span class="badge text-bg-secondary">Unavailable</span>
+            <span class="badge text-bg-secondary">Inactive</span>
         }
     </dd>
 </dl>

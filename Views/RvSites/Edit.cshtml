@@ -1,4 +1,4 @@
-@model RVPark.Models.RvSite
+@model RVPark.Models.Site
 
 @{
     ViewData["Title"] = "Edit RV Site";
@@ -17,26 +17,40 @@
     </div>
 
     <div class="mb-3">
-        <label asp-for="MaxRvLength" class="form-label"></label>
-        <input asp-for="MaxRvLength" class="form-control" />
-        <span asp-validation-for="MaxRvLength" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="NightlyRate" class="form-label"></label>
-        <input asp-for="NightlyRate" class="form-control" />
-        <span asp-validation-for="NightlyRate" class="text-danger"></span>
+        <label asp-for="SiteTypeId" class="form-label"></label>
+        <select asp-for="SiteTypeId" class="form-select" asp-items="ViewBag.SiteTypeId">
+            <option value="">Select a site type</option>
+        </select>
+        <span asp-validation-for="SiteTypeId" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="HookupType" class="form-label"></label>
-        <input asp-for="HookupType" class="form-control" />
+        <select asp-for="HookupType" class="form-select" asp-items="Html.GetEnumSelectList<HookupType>()"></select>
         <span asp-validation-for="HookupType" class="text-danger"></span>
     </div>
 
+    <div class="mb-3">
+        <label asp-for="SizeSqft" class="form-label"></label>
+        <input asp-for="SizeSqft" class="form-control" />
+        <span asp-validation-for="SizeSqft" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PhotoUrl" class="form-label"></label>
+        <input asp-for="PhotoUrl" class="form-control" />
+        <span asp-validation-for="PhotoUrl" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Notes" class="form-label"></label>
+        <textarea asp-for="Notes" class="form-control"></textarea>
+        <span asp-validation-for="Notes" class="text-danger"></span>
+    </div>
+
     <div class="form-check mb-3">
-        <input asp-for="IsAvailable" class="form-check-input" />
-        <label asp-for="IsAvailable" class="form-check-label"></label>
+        <input asp-for="IsActive" class="form-check-input" />
+        <label asp-for="IsActive" class="form-check-label"></label>
     </div>
 
     <button type="submit" class="btn btn-primary">Save</button>
