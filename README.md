@@ -86,3 +86,32 @@ Database__MigrateOnStartup=true
 
 For local development, `Database__MigrateOnStartup` does not need to be set if
 developers are running `dotnet ef database update` manually.
+
+### Test data seeding
+
+The app includes an idempotent test data seeder for local development. It seeds
+site types, sites, users, customers, employees, reservations, bills, and
+payments. The seeder only creates missing seed records and does not overwrite
+existing rows.
+
+By default, local development runs the seeder on startup through
+`appsettings.Development.json`:
+
+```json
+"Database": {
+  "SeedOnStartup": true
+}
+```
+
+You can also run the seeder once and exit with:
+
+```bash
+dotnet run -- --seed
+```
+
+The database schema must already be up to date before seeding. Run migrations
+first with:
+
+```bash
+dotnet ef database update
+```
