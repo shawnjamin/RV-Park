@@ -1,4 +1,4 @@
-@model RVPark.Models.RvSite
+@model RVPark.Models.Site
 
 @{
     ViewData["Title"] = "Delete RV Site";
@@ -14,11 +14,11 @@
     <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SiteNumber)</dt>
     <dd class="col-sm-9">@Html.DisplayFor(model => model.SiteNumber)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.MaxRvLength)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.MaxRvLength) ft</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SiteType)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(model => model.SiteType!.Name)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.NightlyRate)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.NightlyRate)</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.HookupType)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(model => model.HookupType)</dd>
 </dl>
 
 <form asp-action="Delete">

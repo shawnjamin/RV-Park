@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
 using RVPark.Models;
@@ -9,8 +10,9 @@ public class RvSitesController(ApplicationDbContext context) : Controller
 {
     public async Task<IActionResult> Index()
     {
-        var sites = await context.RvSites
+        var sites = await context.Sites
             .AsNoTracking()
+            .Include(site => site.SiteType)
             .OrderBy(site => site.SiteNumber)
             .ToListAsync();
 
@@ -24,39 +26,45 @@ public class RvSitesController(ApplicationDbContext context) : Controller
             return NotFound();
         }
 
-        var rvSite = await context.RvSites
+        var site = await context.Sites
             .AsNoTracking()
+            .Include(site => site.SiteType)
             .FirstOrDefaultAsync(site => site.Id == id);
 
-        if (rvSite is null)
+        if (site is null)
         {
             return NotFound();
         }
 
-        return View(rvSite);
+        return View(site);
     }
 
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
+        await PopulateSiteTypesAsync();
         return View();
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("SiteNumber,MaxRvLength,NightlyRate,HookupType,IsAvailable")] RvSite rvSite)
+    public async Task<IActionResult> Create([Bind("SiteTypeId,SiteNumber,HookupType,SizeSqft,PhotoUrl,Notes,IsActive")] Site site)
     {
+        await ValidateSiteTypeAsync(site.SiteTypeId);
+
         if (!ModelState.IsValid)
         {
-            return View(rvSite);
+            await PopulateSiteTypesAsync(site.SiteTypeId);
+            return View(site);
         }
 
-        if (await SiteNumberExists(rvSite.SiteNumber))
+        if (await SiteNumberExists(site.SiteNumber))
         {
-            ModelState.AddModelError(nameof(RvSite.SiteNumber), "A site with this site number already exists.");
-            return View(rvSite);
+            ModelState.AddModelError(nameof(Site.SiteNumber), "A site with this site number already exists.");
+            await PopulateSiteTypesAsync(site.SiteTypeId);
+            return View(site);
         }
 
-        context.Add(rvSite);
+        context.Add(site);
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
@@ -68,44 +76,49 @@ public class RvSitesController(ApplicationDbContext context) : Controller
             return NotFound();
         }
 
-        var rvSite = await context.RvSites.FindAsync(id);
+        var site = await context.Sites.FindAsync(id);
 
-        if (rvSite is null)
+        if (site is null)
         {
             return NotFound();
         }
 
-        return View(rvSite);
+        await PopulateSiteTypesAsync(site.SiteTypeId);
+        return View(site);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,SiteNumber,MaxRvLength,NightlyRate,HookupType,IsAvailable")] RvSite rvSite)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,SiteTypeId,SiteNumber,HookupType,SizeSqft,PhotoUrl,Notes,IsActive")] Site site)
     {
-        if (id != rvSite.Id)
+        if (id != site.Id)
         {
             return NotFound();
         }
 
+        await ValidateSiteTypeAsync(site.SiteTypeId);
+
         if (!ModelState.IsValid)
         {
-            return View(rvSite);
+            await PopulateSiteTypesAsync(site.SiteTypeId);
+            return View(site);
         }
 
-        if (await SiteNumberExists(rvSite.SiteNumber, rvSite.Id))
+        if (await SiteNumberExists(site.SiteNumber, site.Id))
         {
-            ModelState.AddModelError(nameof(RvSite.SiteNumber), "A site with this site number already exists.");
-            return View(rvSite);
+            ModelState.AddModelError(nameof(Site.SiteNumber), "A site with this site number already exists.");
+            await PopulateSiteTypesAsync(site.SiteTypeId);
+            return View(site);
         }
 
         try
         {
-            context.Update(rvSite);
+            context.Update(site);
             await context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!await RvSiteExists(rvSite.Id))
+            if (!await SiteExists(site.Id))
             {
                 return NotFound();
             }
@@ -123,42 +136,67 @@ public class RvSitesController(ApplicationDbContext context) : Controller
             return NotFound();
         }
 
-        var rvSite = await context.RvSites
+        var site = await context.Sites
             .AsNoTracking()
+            .Include(site => site.SiteType)
             .FirstOrDefaultAsync(site => site.Id == id);
 
-        if (rvSite is null)
+        if (site is null)
         {
             return NotFound();
         }
 
-        return View(rvSite);
+        return View(site);
     }
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var rvSite = await context.RvSites.FindAsync(id);
+        var site = await context.Sites.FindAsync(id);
 
-        if (rvSite is not null)
+        if (site is not null)
         {
-            context.RvSites.Remove(rvSite);
+            context.Sites.Remove(site);
             await context.SaveChangesAsync();
         }
 
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task<bool> RvSiteExists(int id)
+    private async Task<bool> SiteExists(int id)
     {
-        return await context.RvSites.AnyAsync(site => site.Id == id);
+        return await context.Sites.AnyAsync(site => site.Id == id);
     }
 
     private async Task<bool> SiteNumberExists(string siteNumber, int? excludingId = null)
     {
-        return await context.RvSites.AnyAsync(site =>
+        return await context.Sites.AnyAsync(site =>
             site.SiteNumber == siteNumber &&
             (excludingId == null || site.Id != excludingId));
+    }
+
+    private async Task PopulateSiteTypesAsync(int? selectedSiteTypeId = null)
+    {
+        var siteTypes = await context.SiteTypes
+            .AsNoTracking()
+            .OrderBy(siteType => siteType.Name)
+            .ToListAsync();
+
+        ViewData["SiteTypeId"] = new SelectList(siteTypes, "Id", "Name", selectedSiteTypeId);
+    }
+
+    private async Task ValidateSiteTypeAsync(int siteTypeId)
+    {
+        if (!await context.SiteTypes.AnyAsync())
+        {
+            ModelState.AddModelError(nameof(Site.SiteTypeId), "Create a site type before adding sites.");
+            return;
+        }
+
+        if (!await context.SiteTypes.AnyAsync(siteType => siteType.Id == siteTypeId))
+        {
+            ModelState.AddModelError(nameof(Site.SiteTypeId), "Select a valid site type.");
+        }
     }
 }

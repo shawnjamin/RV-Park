@@ -87,7 +87,7 @@ entity Site {
     Id : int <<pk>>
     --
     SiteTypeId : int <<fk:SiteType.Id>>
-    SiteNumber : string
+    SiteNumber : string <<unique>>
     HookupType : HookupType
     SizeSqft : int?
     PhotoUrl : string?
@@ -98,7 +98,7 @@ entity Site {
 entity Reservation {
     Id : int <<pk>>
     --
-    ReservationNumber : string
+    ReservationNumber : string <<unique>>
     CustomerId : int <<fk:Customer.Id>>
     SiteId : int <<fk:Site.Id>>
     --
