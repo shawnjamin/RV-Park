@@ -21,9 +21,25 @@ namespace RVPark.Controllers
             return View(fees);
         }
 
-        public async Task<IActionResult> Create() 
+        public async Task<IActionResult> Details(int? id) 
         {
-            return View(); 
+            if (id is null)
+            {
+                return NotFound();
+            }
+
+            var fee = await context.Bills
+                .AsNoTracking()
+                .Include(bill => bill.Reservation)
+                    .ThenInclude(reservation => reservation!.Customer)
+                .FirstOrDefaultAsync(bill => bill.Id == id && bill.Type != BillType.SiteCharge);
+
+            if (fee is null)
+            {
+                return NotFound();
+            }
+
+            return View(fee);
         }
     }
 }
