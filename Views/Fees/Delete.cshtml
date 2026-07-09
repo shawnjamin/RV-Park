@@ -1,0 +1,47 @@
+@model RVPark.Models.Bill
+
+@{
+    ViewData["Title"] = "Delete Fee";
+}
+
+<div class="mb-4">
+    <h2>Delete Reservation Fee</h2>
+    <p class="text-danger mb-0">Are you sure you want to delete this fee?</p>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Reservation</dt>
+            <dd class="col-sm-9">@Model.Reservation?.ReservationNumber</dd>
+
+            <dt class="col-sm-3">Customer</dt>
+            <dd class="col-sm-9">
+                @Model.Reservation?.Customer?.FirstName @Model.Reservation?.Customer?.LastName
+            </dd>
+
+            <dt class="col-sm-3">Fee Type</dt>
+            <dd class="col-sm-9">@Model.Type</dd>
+
+            <dt class="col-sm-3">Amount</dt>
+            <dd class="col-sm-9">@Model.Amount.ToString("C")</dd>
+
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+
+            <dt class="col-sm-3">Created</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("MM/dd/yyyy")</dd>
+        </dl>
+
+        <hr />
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="d-flex gap-2">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger">Delete Fee</button>
+            </div>
+        </form>
+    </div>
+</div>
