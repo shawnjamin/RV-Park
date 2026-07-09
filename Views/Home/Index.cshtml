@@ -1,8 +1,100 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h2 class="fw-bold">Dashboard Overview</h2>
+        <p class="text-muted mb-0">Welcome to the RV Park Admin Portal.</p>
+    </div>
+    <div>
+        <span class="text-muted"><i class="bi bi-calendar-event me-1"></i> @DateTime.Now.ToString("MMMM dd, yyyy")</span>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 border-bottom border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="text-muted text-uppercase fw-bold mb-0">Today's Check-ins</h6>
+                    <i class="fs-4 bi-box-arrow-in-right text-primary"></i>
+                </div>
+                <h2 class="fw-bold mb-0">12</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 border-bottom border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="text-muted text-uppercase fw-bold mb-0">Active Sites</h6>
+                    <i class="fs-4 bi-geo-alt text-success"></i>
+                </div>
+                <h2 class="fw-bold mb-0">45 / 50</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 border-bottom border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="text-muted text-uppercase fw-bold mb-0">Pending Payments</h6>
+                    <i class="fs-4 bi-cash text-warning"></i>
+                </div>
+                <h2 class="fw-bold mb-0">4</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 border-bottom border-danger border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="text-muted text-uppercase fw-bold mb-0">Needs Attention</h6>
+                    <i class="fs-4 bi-exclamation-triangle text-danger"></i>
+                </div>
+                <h2 class="fw-bold mb-0">1</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h5 class="mb-3 border-bottom pb-2">Quick Actions</h5>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-calendar-check text-primary mb-3" style="font-size: 2.5rem;"></i>
+                <h5 class="fw-bold">Manage Reservations</h5>
+                <p class="text-muted small">Update dates, change sites, and process cancellations.</p>
+                <a asp-controller="Reservations" asp-action="Index" class="btn btn-primary w-100 mt-2">Go to Reservations</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-geo-alt text-success mb-3" style="font-size: 2.5rem;"></i>
+                <h5 class="fw-bold">Site Configuration</h5>
+                <p class="text-muted small">Add new RV sites, manage hookups, and upload photos.</p>
+                <a asp-controller="RvSites" asp-action="Index" class="btn btn-success w-100 mt-2">Go to Sites</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-file-earmark-bar-graph text-dark mb-3" style="font-size: 2.5rem;"></i>
+                <h5 class="fw-bold">Generate Reports</h5>
+                <p class="text-muted small">Pull reservation data and export to PDF by date range.</p>
+                <a asp-controller="Reports" asp-action="Index" class="btn btn-dark w-100 mt-2">Go to Reports</a>
+            </div>
+        </div>
+    </div>
 </div>

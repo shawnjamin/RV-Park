@@ -35,17 +35,7 @@
                             <td>@fee.Amount.ToString("C")</td>
                             <td>@fee.CreatedAt.ToLocalTime().ToString("MM/dd/yyyy")</td>
                             <td class="text-end">
-                                <a asp-action="Details" asp-route-id="@fee.Id" class="btn btn-sm btn-outline-secondary">
-                                    Details
-                                </a>
-
-                                <a asp-action="Edit" asp-route-id="@fee.Id" class="btn btn-sm btn-outline-primary">
-                                    Edit
-                                </a>
-
-                                <a asp-action="Delete" asp-route-id="@fee.Id" class="btn btn-sm btn-outline-danger">
-                                    Delete
-                                </a>
+                                <partial name="_TableActionButtons" model="@fee.Id" />
                             </td>
                         </tr>
                     }

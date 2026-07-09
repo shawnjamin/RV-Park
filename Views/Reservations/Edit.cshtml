@@ -44,7 +44,7 @@
                             </select>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
-                            <button type="button" class="btn btn-outline-primary w-100">Check Availability</button>
+                            <button type="button" class="btn btn-outline-primary w-100" id="checkAvailabilityBtn">Check Availability</button>
                         </div>
                     </div>
 
@@ -99,3 +99,48 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        document.getElementById('checkAvailabilityBtn').addEventListener('click', function() {
+            var start = document.getElementById('StartDate').value;
+            var end = document.getElementById('EndDate').value;
+            var resId = document.getElementById('Id').value;
+            var btn = this;
+
+            if(!start || !end) {
+                alert('Please select both a Check-In and Check-Out date first.');
+                return;
+            }
+
+            var originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Checking...';
+            btn.disabled = true;
+            fetch(`/Reservations/GetAvailableSites?startDate=${start}&endDate=${end}&currentReservationId=${resId}`)
+                .then(response => response.json())
+                .then(data => {
+                    var siteSelect = document.getElementById('SiteId');
+                    siteSelect.innerHTML = '';
+
+                    if(data.length === 0) {
+                        siteSelect.innerHTML = '<option value="">No sites available for these dates!</option>';
+                    } else {
+                        data.forEach(site => {
+                            var option = document.createElement('option');
+                            option.value = site.id;
+                            option.text = site.text;
+                            siteSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(err => console.error('Error fetching sites:', err))
+                .finally(() => {
+                    // Reset button
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+        });
+    </script>
+}
