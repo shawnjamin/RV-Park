@@ -1,15 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using RVPark.Data;
+using RVPark.Models;
 
 namespace RVPark.Controllers
 {
-    public class FeesController : Controller
+    public class FeesController(ApplicationDbContext context) : Controller
     {
-        public IActionResult Index() 
+        public async Task<IActionResult> Index() 
         {
-            return View(); 
+            var fees = await context.Bills
+                .AsNoTracking()
+                .Include(bill => bill.Reservation)
+                    .ThenInclude(reservation => reservation!.Customer)
+                .Where(bill => bill.Type != BillType.SiteCharge)
+                .OrderByDescending(bill => bill.CreatedAt)
+                .ToListAsync();
+
+            return View(fees);
         }
 
-        public IActionResult Create() 
+        public async Task<IActionResult> Create() 
         {
             return View(); 
         }
