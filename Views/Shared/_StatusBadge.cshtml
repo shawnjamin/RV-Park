@@ -11,6 +11,21 @@
     case "Upcoming":
         <span class="badge rounded-pill bg-primary">Upcoming</span>
         break;
+    case "Active":
+        <span class="badge rounded-pill bg-success">Active</span>
+        break;
+    case "Inactive":
+        <span class="badge rounded-pill bg-secondary">Inactive</span>
+        break;
+    case "PendingPayment":
+        <span class="badge rounded-pill bg-warning text-dark">Pending Payment</span>
+        break;
+    case "Confirmed":
+        <span class="badge rounded-pill bg-success">Confirmed</span>
+        break;
+    case "Cancelled":
+        <span class="badge rounded-pill bg-danger">Cancelled</span>
+        break;
     default:
         <span class="badge rounded-pill bg-secondary">@Model</span>
         break;

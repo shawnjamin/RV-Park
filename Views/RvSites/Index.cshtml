@@ -1,51 +1,66 @@
 @model IEnumerable<RVPark.Models.Site>
 
 @{
-    ViewData["Title"] = "RV Sites";
+    ViewData["Title"] = "Manage RV Sites";
 }
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="mb-0">RV Sites</h1>
-    <a class="btn btn-primary" asp-action="Create">Add Site</a>
-</div>
+<partial name="_PageHeader" model='("Manage RV Sites", "Add New Site", Url.Action("Create"))' />
 
-<table class="table table-striped align-middle">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.SiteNumber)</th>
-            <th>@Html.DisplayNameFor(model => model.SiteType)</th>
-            <th>@Html.DisplayNameFor(model => model.HookupType)</th>
-            <th>@Html.DisplayNameFor(model => model.SizeSqft)</th>
-            <th>@Html.DisplayNameFor(model => model.IsActive)</th>
-            <th class="text-end">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model)
-{
-        <tr>
-            <td>@Html.DisplayFor(modelItem => item.SiteNumber)</td>
-            <td>@Html.DisplayFor(modelItem => item.SiteType!.Name)</td>
-            <td>@Html.DisplayFor(modelItem => item.HookupType)</td>
-            <td>@Html.DisplayFor(modelItem => item.SizeSqft)</td>
-            <td>
-                @if (item.IsActive)
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <table class="table table-striped table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Site Number</th>
+                    <th>Type</th>
+                    <th>Hookup</th>
+                    <th>Size (SqFt)</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
                 {
-                    <span class="badge text-bg-success">Active</span>
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">@item.SiteNumber</td>
+                            <td>@item.SiteType?.Name</td>
+                            <td>@item.HookupType</td>
+                            <td>@item.SizeSqft</td>
+                            <td>
+                                <partial name="_StatusBadge" model='item.IsActive ? "Active" : "Inactive"' />
+                            </td>
+                            <td class="text-end">
+                                
+                                <a asp-action="ManagePhotos" asp-route-id="@item.Id" class="btn btn-sm btn-warning me-1">
+                                    📸 Photos
+                                </a>
+
+                                <partial name="_TableActionButtons" model="item.Id" />
+                                
+                            </td>
+                        </tr>
+                    }
                 }
                 else
                 {
-                    <span class="badge text-bg-secondary">Inactive</span>
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            No RV Sites found. Click "Add New Site" to get started!
+                        </td>
+                    </tr>
                 }
-            </td>
-            <td class="text-end">
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a>
-                <span class="text-muted mx-1">|</span>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                <span class="text-muted mx-1">|</span>
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var item in Model)
+    {
+        <partial name="_DeleteModal" model='(item.Id, "RvSites")' /> 
+    }
 }
-    </tbody>
-</table>

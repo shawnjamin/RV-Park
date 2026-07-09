@@ -4,57 +4,68 @@
     ViewData["Title"] = "Add RV Site";
 }
 
-<h1>Add RV Site</h1>
+<div class="mb-4">
+    <h2>Add New RV Site</h2>
+    <p class="text-muted">Create a new site and define its physical parameters.</p>
+</div>
 
-<form asp-action="Create" class="mt-3">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form asp-action="Create">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-    <div class="mb-3">
-        <label asp-for="SiteNumber" class="form-label"></label>
-        <input asp-for="SiteNumber" class="form-control" />
-        <span asp-validation-for="SiteNumber" class="text-danger"></span>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="SiteNumber" class="form-label fw-bold"></label>
+                            <input asp-for="SiteNumber" class="form-control" placeholder="e.g., A-12" />
+                            <span asp-validation-for="SiteNumber" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="SiteTypeId" class="form-label fw-bold">Site Type</label>
+                            <select asp-for="SiteTypeId" class="form-select" asp-items="ViewBag.SiteTypeId">
+                                <option value="">Select a site type...</option>
+                            </select>
+                            <span asp-validation-for="SiteTypeId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="HookupType" class="form-label fw-bold"></label>
+                            <select asp-for="HookupType" class="form-select" asp-items="Html.GetEnumSelectList<RVPark.Models.HookupType>()"></select>
+                            <span asp-validation-for="HookupType" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="SizeSqft" class="form-label fw-bold">Size (SqFt)</label>
+                            <input asp-for="SizeSqft" class="form-control" type="number" />
+                            <span asp-validation-for="SizeSqft" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-bold"></label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Additional details about the site..."></textarea>
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-4 form-check form-switch">
+                        <input asp-for="IsActive" class="form-check-input" role="switch" id="isActiveSwitch" />
+                        <label class="form-check-label" for="isActiveSwitch">Site is Active and Available for Rent</label>
+                    </div>
+
+                    <hr class="mb-4" />
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Create Site</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="SiteTypeId" class="form-label"></label>
-        <select asp-for="SiteTypeId" class="form-select" asp-items="ViewBag.SiteTypeId">
-            <option value="">Select a site type</option>
-        </select>
-        <span asp-validation-for="SiteTypeId" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="HookupType" class="form-label"></label>
-        <select asp-for="HookupType" class="form-select" asp-items="Html.GetEnumSelectList<HookupType>()"></select>
-        <span asp-validation-for="HookupType" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="SizeSqft" class="form-label"></label>
-        <input asp-for="SizeSqft" class="form-control" />
-        <span asp-validation-for="SizeSqft" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="PhotoUrl" class="form-label"></label>
-        <input asp-for="PhotoUrl" class="form-control" />
-        <span asp-validation-for="PhotoUrl" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Notes" class="form-label"></label>
-        <textarea asp-for="Notes" class="form-control"></textarea>
-        <span asp-validation-for="Notes" class="text-danger"></span>
-    </div>
-
-    <div class="form-check mb-3">
-        <input asp-for="IsActive" class="form-check-input" />
-        <label asp-for="IsActive" class="form-check-label"></label>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Create</button>
-    <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
-</form>
+</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

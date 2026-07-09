@@ -1,1 +1,71 @@
-Pricing
+@model IEnumerable<RVPark.Models.SiteType>
+
+@{
+    ViewData["Title"] = "Maintain Pricing";
+}
+
+<partial name="_PageHeader" model='("Maintain Pricing & Site Types", "Add New Site Type", Url.Action("Create"))' />
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <table class="table table-striped table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Site Type Name</th>
+                    <th>Description</th>
+                    <th>Current Price</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>@item.Description</td>
+                            <td>@item.Price.ToString("C")</td>
+                            <td>
+                                <partial name="_StatusBadge" model='item.IsActive ? "Active" : "Inactive"' />
+                            </td>
+                            <td class="text-end">
+                                <partial name="_TableActionButtons" model="item.Id" />
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td>Premium RV Site</td>
+                        <td>Full hookups, pull-through, 50 amp</td>
+                        <td>$75.00</td>
+                        <td><partial name="_StatusBadge" model='"Active"' /></td>
+                        <td class="text-end">
+                            <partial name="_TableActionButtons" model="1" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Standard Tent Site</td>
+                        <td>No hookups, fire pit included</td>
+                        <td>$25.00</td>
+                        <td><partial name="_StatusBadge" model='"Active"' /></td>
+                        <td class="text-end">
+                            <partial name="_TableActionButtons" model="2" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var item in Model)
+    {
+        <partial name="_DeleteModal" model='(item.Id, "Pricing")' /> 
+    }
+}
