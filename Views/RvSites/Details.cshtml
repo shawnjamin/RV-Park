@@ -4,39 +4,40 @@
     ViewData["Title"] = "RV Site Details";
 }
 
-<h1>RV Site Details</h1>
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <h2>Site Details: @Model?.SiteNumber</h2>
+    <div>
+        <a asp-action="ManagePhotos" asp-route-id="@Model?.Id" class="btn btn-warning me-2">📸 View Photos</a>
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary me-2">Edit Site</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+    </div>
+</div>
 
-<dl class="row mt-3">
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SiteNumber)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.SiteNumber)</dd>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">Overview</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3 text-muted mb-2">Site Number</dt>
+            <dd class="col-sm-9 fw-bold">@Html.DisplayFor(model => model.SiteNumber)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SiteType)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.SiteType!.Name)</dd>
+            <dt class="col-sm-3 text-muted mb-2">Site Type</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.SiteType!.Name)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.HookupType)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.HookupType)</dd>
+            <dt class="col-sm-3 text-muted mb-2">Hookups</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.HookupType)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SizeSqft)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.SizeSqft)</dd>
+            <dt class="col-sm-3 text-muted mb-2">Size</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.SizeSqft) SqFt</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.PhotoUrl)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.PhotoUrl)</dd>
+            <dt class="col-sm-3 text-muted mb-2">Notes</dt>
+            <dd class="col-sm-9">@(string.IsNullOrEmpty(Model?.Notes) ? "No notes provided." : Model.Notes)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Notes)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.Notes)</dd>
-
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.IsActive)</dt>
-    <dd class="col-sm-9">
-        @if (Model.IsActive)
-        {
-            <span class="badge text-bg-success">Active</span>
-        }
-        else
-        {
-            <span class="badge text-bg-secondary">Inactive</span>
-        }
-    </dd>
-</dl>
-
-<a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
-<a class="btn btn-outline-secondary" asp-action="Index">Back to List</a>
+            <dt class="col-sm-3 text-muted mb-2">Status</dt>
+            <dd class="col-sm-9">
+                <partial name="_StatusBadge" model='Model?.IsActive == true ? "Active" : "Inactive"' />
+            </dd>
+        </dl>
+    </div>
+</div>

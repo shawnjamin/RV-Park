@@ -1,0 +1,103 @@
+@model RVPark.Models.Site
+@* Note: This assumes the Backend team updates the Site model to include a list of photos, e.g., IEnumerable<SitePhoto> Photos *@
+
+@{
+    ViewData["Title"] = "Manage Site Photos";
+}
+
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h2>Manage Photos: Site @Model?.SiteNumber</h2>
+        <p class="text-muted mb-0">Upload new images or remove existing ones for this RV site.</p>
+    </div>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-outline-primary me-2">Back to Edit Site</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cloud-arrow-up"></i> Upload New Photo</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="UploadPhoto" enctype="multipart/form-data" method="post">
+                    <input type="hidden" name="SiteId" value="@Model?.Id" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Image File</label>
+                        <input type="file" name="imageFile" class="form-control" accept="image/*" required />
+                        <div class="form-text">Max file size: 5MB. Formats: JPG, PNG.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Caption (Optional)</label>
+                        <input type="text" name="caption" class="form-control" placeholder="e.g., View from the firepit" />
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">Upload Photo</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-images"></i> Current Photos</h5>
+            </div>
+            <div class="card-body bg-light">
+                <div class="row g-3">
+                    
+                    @* Commented out until we add Photos to model
+                    @if (Model?.Photos != null && Model.Photos.Any())
+                    {
+                        foreach (var photo in Model.Photos)
+                        {
+                            <div class="col-md-6 col-xl-4">
+                                <div class="card h-100 shadow-sm">
+                                    <img src="@photo.Url" class="card-img-top" alt="Site Photo" style="height: 150px; object-fit: cover;" />
+                                    
+                                    <div class="card-body p-2 text-center">
+                                        <p class="small text-muted mb-2 text-truncate">
+                                            @(string.IsNullOrEmpty(photo.Caption) ? "No caption" : photo.Caption)
+                                        </p>
+                                        
+                                        <form asp-action="DeletePhoto" method="post">
+                                            <input type="hidden" name="photoId" value="@photo.Id" />
+                                            <input type="hidden" name="siteId" value="@Model.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Are you sure you want to delete this photo?');">
+                                                Delete Image
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12 text-center py-5">
+                            <h5 class="text-muted">No photos uploaded yet.</h5>
+                            <p class="text-muted">Use the form on the left to add the first photo for this site.</p>
+                        </div>
+                        
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card h-100 shadow-sm">
+                                <img src="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Mockup Photo" style="height: 150px; object-fit: cover;" />
+                                <div class="card-body p-2 text-center">
+                                    <p class="small text-muted mb-2">Beautiful fire pit area</p>
+                                    <button type="button" class="btn btn-sm btn-outline-danger w-100">Delete Image</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    *@
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
