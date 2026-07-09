@@ -51,6 +51,8 @@ public static class DatabaseSeeder
                 Name = "Standard Back-In",
                 Description = "Back-in RV site with standard amenities.",
                 Price = 55.00m,
+                StartDate = new DateTime(2026, 1, 1), 
+                EndDate = null,
                 IsActive = true
             },
             new SiteType
@@ -58,16 +60,32 @@ public static class DatabaseSeeder
                 Name = "Premium Pull-Through",
                 Description = "Larger pull-through site with premium access.",
                 Price = 85.00m,
-                IsActive = true
+                StartDate = new DateTime(2026, 1, 1), 
+                EndDate = new DateTime(2026, 6, 1),
+                IsActive = false
             },
             new SiteType
             {
                 Name = "Tent and Van",
                 Description = "Smaller site for tent campers and compact vans.",
                 Price = 35.00m,
+                StartDate = new DateTime(2026, 7, 1), 
+                EndDate = new DateTime(2026, 7, 10),
                 IsActive = true
             }
         };
+
+        var existingSites = await context.SiteTypes.ToListAsync(cancellationToken);
+        foreach (var site in existingSites)
+        {
+            // If the record exists but StartDate is at default (0001-01-01), set it
+            if (site.StartDate == DateTime.MinValue)
+            {
+                site.StartDate = new DateTime(2026, 1, 1);
+                context.SiteTypes.Update(site);
+            }
+        }
+        await context.SaveChangesAsync(cancellationToken);
 
         foreach (var seedSiteType in seedSiteTypes)
         {
