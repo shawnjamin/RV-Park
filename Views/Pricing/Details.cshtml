@@ -4,6 +4,7 @@
     ViewData["Title"] = "Pricing Details";
 }
 
+@* Details page header *@
 <div class="mb-4 d-flex justify-content-between align-items-center">
     <div>
         <h2>Pricing Details</h2>
@@ -15,6 +16,7 @@
     </div>
 </div>
 
+@* Details page body *@
 <div class="card shadow-sm border-0">
     <div class="card-header bg-dark text-white">
         <h5 class="mb-0">@Model?.Name</h5>
@@ -46,6 +48,7 @@
                 @endDisplay
             </dd>
 
+            @* Status badge display w/ bool logic *@
             <dt class="col-sm-3 text-muted mb-3">Status</dt>
             <dd class="col-sm-9 mb-3">
                 @{

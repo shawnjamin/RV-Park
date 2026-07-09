@@ -4,6 +4,7 @@
     ViewData["Title"] = "Manage Reservation";
 }
 
+@* Manage/edit page header *@
 <div class="mb-4 d-flex justify-content-between align-items-center">
     <div>
         <h2>Manage Reservation #@(Model?.Id ?? 1042)</h2>
@@ -12,13 +13,16 @@
     <a asp-action="Index" class="btn btn-outline-secondary">Back to Search</a>
 </div>
 
+@* Page body *@
 <div class="row g-4">
+    @* Modify Booking Details Panel *@
     <div class="col-lg-8">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-header bg-dark text-white">
                 <h5 class="mb-0">Modify Booking Details</h5>
             </div>
             <div class="card-body p-4">
+                @* Reservation edit form *@
                 <form asp-action="Edit" method="post">
                     <input type="hidden" asp-for="Id" />
                     
@@ -58,6 +62,7 @@
         </div>
     </div>
 
+    @* Financial Impact panel *@
     <div class="col-lg-4">
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-primary text-white">
@@ -85,6 +90,7 @@
                 </div>
         </div>
 
+        @* Checks if the reservation is cancelled, if so, shows cancel msg and if not, shows cancel booking button*@
         @if (Model.Status != RVPark.Models.ReservationStatus.Cancelled)
         {
             <div class="card shadow-sm border-0 border-danger mt-4">
@@ -110,6 +116,7 @@
     </div>
 </div>
 
+@* Check availability script *@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 

@@ -18,7 +18,6 @@ namespace RVPark.Controllers
         // GET: Reservations (Includes the Search logic from the rubric)
         public async Task<IActionResult> Index(string searchQuery)
         {
-            // Include Customer and Site so your table can display names and site numbers
             var reservations = _context.Reservations
                 .Include(r => r.Customer)
                 .Include(r => r.Site)
@@ -49,7 +48,7 @@ namespace RVPark.Controllers
 
             if (reservation == null) return NotFound();
 
-            // Populate the ViewBag with available sites for your dropdown
+            // Populate the ViewBag with available sites
             ViewBag.AvailableSites = new SelectList(_context.Sites.Where(s => s.IsActive), "Id", "SiteNumber", reservation.SiteId);
 
             return View(reservation);

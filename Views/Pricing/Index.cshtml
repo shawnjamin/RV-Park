@@ -9,6 +9,7 @@
 <div class="card shadow-sm border-0">
     <div class="card-body">
         <table class="table table-striped table-hover align-middle mb-0">
+            <!-- Table Column labels -->
             <thead class="table-dark">
                 <tr>
                     <th>Site Type</th>
@@ -19,6 +20,7 @@
                 </tr>
             </thead>
             <tbody>
+                @* Checks if the model exists, if yes, fills data using the DB if not uses filler *@
                 @if (Model != null && Model.Any())
                 {
                     foreach (var item in Model)
@@ -68,6 +70,7 @@
     </div>
 </div>
 
+@* Adds Delete Modal for each item (hidden by default) *@
 @if (Model != null && Model.Any())
 {
     foreach (var item in Model)

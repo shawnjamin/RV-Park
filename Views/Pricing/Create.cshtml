@@ -3,16 +3,19 @@
 @{
     ViewData["Title"] = "Add New Site Type";
 }
-
+\
+@* Create page header *@
 <div class="mb-4">
     <h2>Create New Site Type & Pricing</h2>
     <p class="text-muted">Define a new site category and its base pricing.</p>
 </div>
 
+@* Create page body *@
 <div class="row">
     <div class="col-md-8 col-lg-6">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
+                @* Create page form *@
                 <form asp-action="Create">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -64,7 +67,7 @@
         </div>
     </div>
 </div>
-
+@* Validation Scripts *@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
