@@ -1,0 +1,79 @@
+@model RVPark.Models.EmployeeAccountFormViewModel
+
+@{
+    ViewData["Title"] = "Edit Employee";
+}
+
+<!-- Page title and helper text -->
+<div class="mb-4">
+    <h2>Edit Employee Account</h2>
+    <p class="text-muted">Update employee account details and access level.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+
+                <!-- Form posts to EmployeesController.Edit POST action -->
+                <form asp-action="Edit">
+                    <!-- Hidden Id tells the controller which employee is being edited -->
+                    <input type="hidden" asp-for="Id" />
+
+                    <!-- Shows model-level validation errors -->
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <!-- Employee first name -->
+                    <div class="mb-3">
+                        <label asp-for="FirstName" class="form-label fw-bold"></label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Employee last name -->
+                    <div class="mb-3">
+                        <label asp-for="LastName" class="form-label fw-bold"></label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Email updates the related User record -->
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-bold"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <!-- Access level dropdown is populated by the controller -->
+                    <div class="mb-3">
+                        <label asp-for="AccessLevel" class="form-label fw-bold"></label>
+                        <select asp-for="AccessLevel" class="form-select" asp-items="ViewBag.AccessLevels"></select>
+                        <span asp-validation-for="AccessLevel" class="text-danger"></span>
+                    </div>
+
+                    <!-- Check this to lock the employee account -->
+                    <div class="form-check mb-4">
+                        <input asp-for="IsLocked" class="form-check-input" />
+                        <label asp-for="IsLocked" class="form-check-label">
+                            Lock this employee account
+                        </label>
+                    </div>
+
+                    <hr class="mb-4" />
+
+                    <!-- Form action buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enables client-side validation if validation scripts are configured -->
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
