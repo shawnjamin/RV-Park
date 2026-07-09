@@ -6,7 +6,7 @@ using RVPark.Models;
 
 namespace RVPark.Controllers;
 
-public class EmployeeController(ApplicationDbContext context) : Controller
+public class EmployeesController(ApplicationDbContext context) : Controller
 {
     // Shows all employee accounts
     public async Task<IActionResult> Index()
