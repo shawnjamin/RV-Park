@@ -36,4 +36,6 @@ public class Site
     public SiteType? SiteType { get; set; }
 
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+
+    public ICollection<SitePhoto> Photos { get; set; } = new List<SitePhoto>();
 }

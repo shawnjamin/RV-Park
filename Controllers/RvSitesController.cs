@@ -1,202 +1,196 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
 using RVPark.Data;
 using RVPark.Models;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System;
+using Microsoft.AspNetCore.Http;
 
-namespace RVPark.Controllers;
-
-public class RvSitesController(ApplicationDbContext context) : Controller
+namespace RVPark.Controllers
 {
-    public async Task<IActionResult> Index()
+    public class RvSitesController : Controller
     {
-        var sites = await context.Sites
-            .AsNoTracking()
-            .Include(site => site.SiteType)
-            .OrderBy(site => site.SiteNumber)
-            .ToListAsync();
+        private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _hostEnvironment;
 
-        return View(sites);
-    }
-
-    public async Task<IActionResult> Details(int? id)
-    {
-        if (id is null)
+        public RvSitesController(ApplicationDbContext context, IWebHostEnvironment hostEnvironment)
         {
-            return NotFound();
+            _context = context;
+            _hostEnvironment = hostEnvironment;
         }
 
-        var site = await context.Sites
-            .AsNoTracking()
-            .Include(site => site.SiteType)
-            .FirstOrDefaultAsync(site => site.Id == id);
-
-        if (site is null)
+        // GET: RvSites
+        public async Task<IActionResult> Index()
         {
-            return NotFound();
+            var sites = _context.Sites.Include(s => s.SiteType);
+            return View(await sites.ToListAsync());
         }
 
-        return View(site);
-    }
-
-    public async Task<IActionResult> Create()
-    {
-        await PopulateSiteTypesAsync();
-        return View();
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("SiteTypeId,SiteNumber,HookupType,SizeSqft,PhotoUrl,Notes,IsActive")] Site site)
-    {
-        await ValidateSiteTypeAsync(site.SiteTypeId);
-
-        if (!ModelState.IsValid)
+        // GET: RvSites/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            await PopulateSiteTypesAsync(site.SiteTypeId);
+            if (id == null) return NotFound();
+
+            var site = await _context.Sites
+                .Include(s => s.SiteType)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            
+            if (site == null) return NotFound();
+
             return View(site);
         }
 
-        if (await SiteNumberExists(site.SiteNumber))
+        // GET: RvSites/Create
+        public IActionResult Create()
         {
-            ModelState.AddModelError(nameof(Site.SiteNumber), "A site with this site number already exists.");
-            await PopulateSiteTypesAsync(site.SiteTypeId);
-            return View(site);
+            ViewBag.SiteTypeId = new SelectList(_context.SiteTypes.Where(st => st.IsActive), "Id", "Name");
+            return View();
         }
 
-        context.Add(site);
-        await context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    public async Task<IActionResult> Edit(int? id)
-    {
-        if (id is null)
+        // POST: RvSites/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,SiteNumber,SiteTypeId,HookupType,SizeSqft,Notes,IsActive")] Site site)
         {
-            return NotFound();
-        }
-
-        var site = await context.Sites.FindAsync(id);
-
-        if (site is null)
-        {
-            return NotFound();
-        }
-
-        await PopulateSiteTypesAsync(site.SiteTypeId);
-        return View(site);
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,SiteTypeId,SiteNumber,HookupType,SizeSqft,PhotoUrl,Notes,IsActive")] Site site)
-    {
-        if (id != site.Id)
-        {
-            return NotFound();
-        }
-
-        await ValidateSiteTypeAsync(site.SiteTypeId);
-
-        if (!ModelState.IsValid)
-        {
-            await PopulateSiteTypesAsync(site.SiteTypeId);
-            return View(site);
-        }
-
-        if (await SiteNumberExists(site.SiteNumber, site.Id))
-        {
-            ModelState.AddModelError(nameof(Site.SiteNumber), "A site with this site number already exists.");
-            await PopulateSiteTypesAsync(site.SiteTypeId);
-            return View(site);
-        }
-
-        try
-        {
-            context.Update(site);
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!await SiteExists(site.Id))
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                _context.Add(site);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            ViewBag.SiteTypeId = new SelectList(_context.SiteTypes.Where(st => st.IsActive), "Id", "Name", site.SiteTypeId);
+            return View(site);
+        }
+
+        // GET: RvSites/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var site = await _context.Sites.FindAsync(id);
+            if (site == null) return NotFound();
+
+            ViewBag.SiteTypeId = new SelectList(_context.SiteTypes.Where(st => st.IsActive), "Id", "Name", site.SiteTypeId);
+            return View(site);
+        }
+
+        // POST: RvSites/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,SiteNumber,SiteTypeId,HookupType,SizeSqft,Notes,IsActive")] Site site)
+        {
+            if (id != site.Id) return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(site);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!SiteExists(site.Id)) return NotFound();
+                    else throw;
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            ViewBag.SiteTypeId = new SelectList(_context.SiteTypes.Where(st => st.IsActive), "Id", "Name", site.SiteTypeId);
+            return View(site);
+        }
+
+        // POST: RvSites/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var site = await _context.Sites.FindAsync(id);
+            if (site != null)
+            {
+                _context.Sites.Remove(site);
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool SiteExists(int id)
+        {
+            return _context.Sites.Any(e => e.Id == id);
+        }
+
+
+        // GET: RvSites/ManagePhotos/5
+        public async Task<IActionResult> ManagePhotos(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var site = await _context.Sites
+                .Include(s => s.Photos)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (site == null) return NotFound();
+
+            return View(site);
+        }
+
+        // POST: RvSites/UploadPhoto
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadPhoto(int SiteId, IFormFile imageFile, string caption)
+        {
+            var site = await _context.Sites.FindAsync(SiteId);
+            if (site == null) return NotFound();
+
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                string uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "images", "sites");
+                Directory.CreateDirectory(uploadsFolder);
+
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(fileStream);
+                }
+
+                var photo = new SitePhoto
+                {
+                    SiteId = SiteId,
+                    Url = "/images/sites/" + uniqueFileName,
+                    Caption = caption
+                };
+
+                _context.SitePhotos.Add(photo);
+                await _context.SaveChangesAsync();
             }
 
-            throw;
+            return RedirectToAction(nameof(ManagePhotos), new { id = SiteId });
         }
 
-        return RedirectToAction(nameof(Index));
-    }
-
-    public async Task<IActionResult> Delete(int? id)
-    {
-        if (id is null)
+        // POST: RvSites/DeletePhoto
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePhoto(int photoId, int siteId)
         {
-            return NotFound();
-        }
+            var photo = await _context.SitePhotos.FindAsync(photoId);
+            if (photo != null)
+            {
+                var filePath = Path.Combine(_hostEnvironment.WebRootPath, photo.Url.TrimStart('/'));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
 
-        var site = await context.Sites
-            .AsNoTracking()
-            .Include(site => site.SiteType)
-            .FirstOrDefaultAsync(site => site.Id == id);
+                _context.SitePhotos.Remove(photo);
+                await _context.SaveChangesAsync();
+            }
 
-        if (site is null)
-        {
-            return NotFound();
-        }
-
-        return View(site);
-    }
-
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        var site = await context.Sites.FindAsync(id);
-
-        if (site is not null)
-        {
-            context.Sites.Remove(site);
-            await context.SaveChangesAsync();
-        }
-
-        return RedirectToAction(nameof(Index));
-    }
-
-    private async Task<bool> SiteExists(int id)
-    {
-        return await context.Sites.AnyAsync(site => site.Id == id);
-    }
-
-    private async Task<bool> SiteNumberExists(string siteNumber, int? excludingId = null)
-    {
-        return await context.Sites.AnyAsync(site =>
-            site.SiteNumber == siteNumber &&
-            (excludingId == null || site.Id != excludingId));
-    }
-
-    private async Task PopulateSiteTypesAsync(int? selectedSiteTypeId = null)
-    {
-        var siteTypes = await context.SiteTypes
-            .AsNoTracking()
-            .OrderBy(siteType => siteType.Name)
-            .ToListAsync();
-
-        ViewData["SiteTypeId"] = new SelectList(siteTypes, "Id", "Name", selectedSiteTypeId);
-    }
-
-    private async Task ValidateSiteTypeAsync(int siteTypeId)
-    {
-        if (!await context.SiteTypes.AnyAsync())
-        {
-            ModelState.AddModelError(nameof(Site.SiteTypeId), "Create a site type before adding sites.");
-            return;
-        }
-
-        if (!await context.SiteTypes.AnyAsync(siteType => siteType.Id == siteTypeId))
-        {
-            ModelState.AddModelError(nameof(Site.SiteTypeId), "Select a valid site type.");
+            return RedirectToAction(nameof(ManagePhotos), new { id = siteId });
         }
     }
 }

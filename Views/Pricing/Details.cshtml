@@ -1,42 +1,60 @@
 @model RVPark.Models.SiteType
 
 @{
-    ViewData["Title"] = "Site Type Details";
+    ViewData["Title"] = "Pricing Details";
 }
 
+@* Details page header *@
 <div class="mb-4 d-flex justify-content-between align-items-center">
-    <h2>Site Type Details</h2>
     <div>
-        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edit Type</a>
+        <h2>Pricing Details</h2>
+        <p class="text-muted mb-0">Review configuration for this pricing plan.</p>
+    </div>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary me-2">Edit Plan</a>
         <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
     </div>
 </div>
 
+@* Details page body *@
 <div class="card shadow-sm border-0">
     <div class="card-header bg-dark text-white">
-        <h5 class="mb-0">@Html.DisplayFor(model => model.Name)</h5>
+        <h5 class="mb-0">@Model?.Name</h5>
     </div>
     <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-3 text-muted">
+        <dl class="row mb-0 p-2">
+            <dt class="col-sm-3 text-muted mb-3">
                 @Html.DisplayNameFor(model => model.Description)
             </dt>
-            <dd class="col-sm-9">
-                @(string.IsNullOrEmpty(Model?.Description) ? "No description provided." : Model.Description)
+            <dd class="col-sm-9 mb-3">
+                @Model?.Description
             </dd>
 
-            <dt class="col-sm-3 text-muted">
+            <dt class="col-sm-3 text-muted mb-3">
                 @Html.DisplayNameFor(model => model.Price)
             </dt>
-            <dd class="col-sm-9 fw-bold text-success">
-                @Html.DisplayFor(model => model.Price)
+            <dd class="col-sm-9 fw-bold text-success mb-3">
+                @Model?.Price.ToString("C")
             </dd>
 
-            <dt class="col-sm-3 text-muted">
-                Status
-            </dt>
-            <dd class="col-sm-9">
-                <partial name="_StatusBadge" model='Model?.IsActive == true ? "Active" : "Inactive"' />
+            <dt class="col-sm-3 text-muted mb-3">@Html.DisplayNameFor(model => model.StartDate)</dt>
+            <dd class="col-sm-9 mb-3">@Model?.StartDate.ToShortDateString()</dd>
+
+            <dt class="col-sm-3 text-muted mb-3">@Html.DisplayNameFor(model => model.EndDate)</dt>
+            <dd class="col-sm-9 mb-3">
+                @{
+                    string endDisplay = Model?.EndDate.HasValue == true ? Model.EndDate.Value.ToShortDateString() : "Current";
+                }
+                @endDisplay
+            </dd>
+
+            @* Status badge display w/ bool logic *@
+            <dt class="col-sm-3 text-muted mb-3">Status</dt>
+            <dd class="col-sm-9 mb-3">
+                @{
+                    bool active = Model != null && (Model.IsActive == true);
+                }
+                <partial name="_StatusBadge" model='(active ? "Active" : "Inactive")' />
             </dd>
         </dl>
     </div>
