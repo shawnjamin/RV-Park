@@ -37,17 +37,15 @@
                         <span asp-validation-for="Price" class="text-danger"></span>
                     </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Pricing Start Date</label>
-                            <input type="date" class="form-control" />
-                            <small class="text-muted">When does this rate begin?</small>
-                        </div>
-                        <div class="col-md-6 mt-3 mt-md-0">
-                            <label class="form-label fw-bold">Pricing End Date</label>
-                            <input type="date" class="form-control" />
-                            <small class="text-muted">Leave blank for current price</small>
-                        </div>
+                    <div class="mb-3">
+                        <label asp-for="StartDate" class="control-label">Pricing Start Date</label>
+                        <input asp-for="StartDate" class="form-control" />
+                        <span asp-validation-for="StartDate" class="text-danger">When does this rate begin?</span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="EndDate" class="control-label">Pricing End Date</label>
+                        <input asp-for="EndDate" class="form-control" />
+                        <span asp-validation-for="EndDate" class="text-danger">Leave blank for current price</span>
                     </div>
 
                     <div class="mb-4 form-check form-switch">

@@ -41,7 +41,7 @@ namespace RVPark.Controllers
         // POST: Pricing/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,Price,IsActive")] SiteType siteType)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,Price,StartDate,EndDate,IsActive")] SiteType siteType)
         {
             if (ModelState.IsValid)
             {
@@ -66,7 +66,7 @@ namespace RVPark.Controllers
         // POST: Pricing/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Price,IsActive")] SiteType siteType)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Price,StartDate,EndDate,IsActive")] SiteType siteType)
         {
             if (id != siteType.Id) return NotFound();
 

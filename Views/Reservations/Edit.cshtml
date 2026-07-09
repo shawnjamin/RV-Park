@@ -85,18 +85,28 @@
                 </div>
         </div>
 
-        <div class="card shadow-sm border-0 border-danger">
-            <div class="card-body text-center p-4">
-                <h5 class="text-danger mb-3">Cancel Reservation</h5>
-                <p class="text-muted small">Canceling this reservation will free up the assigned site and may trigger a cancellation fee based on the park's policy.</p>
-                <form asp-action="Cancel" method="post">
-                    <input type="hidden" name="id" value="@Model?.Id" />
-                    <button type="submit" class="btn btn-outline-danger w-100 fw-bold" onclick="return confirm('WARNING: Are you sure you want to completely cancel this reservation?');">
+        @if (Model.Status != RVPark.Models.ReservationStatus.Cancelled)
+        {
+            <div class="card shadow-sm border-0 border-danger mt-4">
+                <div class="card-body text-center p-4">
+                    <h5 class="text-danger mb-3">Cancel Reservation</h5>
+                    <p class="text-muted small">Canceling this reservation will free up the assigned site.</p>
+                    
+                    <button type="button" class="btn btn-outline-danger w-100 fw-bold" 
+                            data-bs-toggle="modal" data-bs-target="#cancelModal-@Model.Id">
                         Cancel Booking
                     </button>
-                </form>
+                </div>
             </div>
-        </div>
+            
+            <partial name="_CancelModal" model="Model.Id" />
+        }
+        else
+        {
+            <div class="alert alert-danger mt-4 text-center">
+                <i class="bi bi-x-circle"></i> This reservation has been cancelled.
+            </div>
+        }
     </div>
 </div>
 

@@ -13,6 +13,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<Bill> Bills => Set<Bill>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<SitePhoto> SitePhotos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

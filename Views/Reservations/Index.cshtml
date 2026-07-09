@@ -48,7 +48,10 @@
                         <tr>
                             <td class="fw-bold">@item.ReservationNumber</td>
                             <td>@item.Customer?.FirstName @item.Customer?.LastName</td>
-                            <td>@item.StartDate.ToShortDateString() - @item.EndDate.ToShortDateString()</td>
+                            <td>
+                                <div class="fw-bold">@item.StartDate.ToString("MMM dd, yyyy")</div>
+                                <div class="text-muted small">to @item.EndDate.ToString("MMM dd, yyyy")</div>
+                            </td>
                             <td>@item.Site?.SiteNumber</td>
                             <td>
                                 <partial name="_StatusBadge" model='item.Status.ToString()' />

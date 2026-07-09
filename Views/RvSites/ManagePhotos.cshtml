@@ -51,7 +51,7 @@
             <div class="card-body bg-light">
                 <div class="row g-3">
                     
-                    @* Commented out until we add Photos to model
+                    
                     @if (Model?.Photos != null && Model.Photos.Any())
                     {
                         foreach (var photo in Model.Photos)
@@ -68,9 +68,14 @@
                                         <form asp-action="DeletePhoto" method="post">
                                             <input type="hidden" name="photoId" value="@photo.Id" />
                                             <input type="hidden" name="siteId" value="@Model.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Are you sure you want to delete this photo?');">
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger w-100" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal-@photo.Id">
                                                 Delete Image
                                             </button>
+
+                                            <partial name="_DeleteModal" model='(photo.Id, "RvSites/DeletePhoto")' />
                                         </form>
                                     </div>
                                 </div>
@@ -80,21 +85,13 @@
                     else
                     {
                         <div class="col-12 text-center py-5">
-                            <h5 class="text-muted">No photos uploaded yet.</h5>
-                            <p class="text-muted">Use the form on the left to add the first photo for this site.</p>
-                        </div>
-                        
-                        <div class="col-md-6 col-xl-4">
-                            <div class="card h-100 shadow-sm">
-                                <img src="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Mockup Photo" style="height: 150px; object-fit: cover;" />
-                                <div class="card-body p-2 text-center">
-                                    <p class="small text-muted mb-2">Beautiful fire pit area</p>
-                                    <button type="button" class="btn btn-sm btn-outline-danger w-100">Delete Image</button>
-                                </div>
-                            </div>
+                            <i class="bi bi-camera text-muted mb-3" style="font-size: 3rem;"></i>
+                            <h5 class="text-muted fw-bold">No photos uploaded yet.</h5>
+                            <p class="text-muted">Use the form on the left to upload the first image for this site.</p>
                         </div>
                     }
-                    *@
+                    
+                    
 
                 </div>
             </div>
