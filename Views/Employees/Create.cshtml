@@ -1,0 +1,76 @@
+@model RVPark.Models.EmployeeAccountFormViewModel
+
+@{
+    ViewData["Title"] = "Create Employee";
+}
+
+<!-- Page title and helper text -->
+<div class="mb-4">
+    <h2>Create Employee Account</h2>
+    <p class="text-muted">Add a new employee account for the admin system.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+
+                <!-- Form posts to EmployeesController.Create POST action -->
+                <form asp-action="Create">
+                    <!-- Shows model-level validation errors -->
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <!-- Employee first name -->
+                    <div class="mb-3">
+                        <label asp-for="FirstName" class="form-label fw-bold"></label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Employee last name -->
+                    <div class="mb-3">
+                        <label asp-for="LastName" class="form-label fw-bold"></label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Email belongs to the related User account -->
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-bold"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <!-- Access levels are loaded from ViewBag.AccessLevels in the controller -->
+                    <div class="mb-3">
+                        <label asp-for="AccessLevel" class="form-label fw-bold"></label>
+                        <select asp-for="AccessLevel" class="form-select" asp-items="ViewBag.AccessLevels"></select>
+                        <span asp-validation-for="AccessLevel" class="text-danger"></span>
+                    </div>
+
+                    <!-- Optional: create the employee account as locked immediately -->
+                    <div class="form-check mb-4">
+                        <input asp-for="IsLocked" class="form-check-input" />
+                        <label asp-for="IsLocked" class="form-check-label">
+                            Lock this employee account
+                        </label>
+                    </div>
+
+                    <hr class="mb-4" />
+
+                    <!-- Form action buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Create Employee</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enables client-side validation if validation scripts are configured -->
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
