@@ -17,20 +17,54 @@
                 <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
                     <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
                         <h3>Admin Portal</h3>
-                        <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+                        @{
+                            // Helper to determine if link is active
+                            string IsActive(string controller)
+                            {
+                                return ViewContext.RouteData.Values["controller"]?.ToString() == controller ? "active" : "";
+                            }
+                        }
+
+                        <ul class="nav nav-pills flex-column mb-auto" style="list-style: none; padding-left: 0;">
+                            
                             <li class="nav-item">
-                                <a asp-controller="RvSites" asp-action="Index" class="nav-link text-white @(ViewContext.RouteData.Values["Controller"]?.ToString() == "rVSites" ? "active bg-primary" : "")">
-                                    Manage Sites
+                                <a asp-controller="Home" asp-action="Index" class="nav-link sidebar-link @IsActive("Home")">
+                                    <i class="fs-4 bi-house me-2"></i> <span class="d-none d-sm-inline">Dashboard</span>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a asp-controller="Pricing" asp-action="Index" class="nav-link text-white @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Pricing" ? "active bg-primary" : "")">
-                                    Maintain Pricing
+
+                            <li class="nav-item mt-3 mb-1">
+                                <span class="text-secondary small fw-bold text-uppercase px-2" style="font-size: 0.75rem;">Park Management</span>
+                            </li>
+                            
+                            <li>
+                                <a asp-controller="RvSites" asp-action="Index" class="nav-link sidebar-link @IsActive("RvSites")">
+                                    <i class="fs-4 bi-geo-alt me-2"></i> <span class="d-none d-sm-inline">Manage Sites</span>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a asp-controller="Reports" asp-action="Index" class="nav-link text-white @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reports" ? "active bg-primary" : "")">
-                                    Generate Reports
+                            <li>
+                                <a asp-controller="Pricing" asp-action="Index" class="nav-link sidebar-link @IsActive("Pricing")">
+                                    <i class="fs-4 bi-tags me-2"></i> <span class="d-none d-sm-inline">Maintain Pricing</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Fees" asp-action="Index" class="nav-link sidebar-link @IsActive("Fees")">
+                                    <i class="fs-4 bi-cash-coin me-2"></i> <span class="d-none d-sm-inline">Manage Fees</span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item mt-3 mb-1">
+                                <span class="text-secondary small fw-bold text-uppercase px-2" style="font-size: 0.75rem;">Bookings</span>
+                            </li>
+
+                            <li>
+                                <a asp-controller="Reservations" asp-action="Index" class="nav-link sidebar-link @IsActive("Reservations")">
+                                    <i class="fs-4 bi-calendar-check me-2"></i> <span class="d-none d-sm-inline">Manage Reservations</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Reports" asp-action="Index" class="nav-link sidebar-link @IsActive("Reports")">
+                                    <i class="fs-4 bi-file-earmark-bar-graph me-2"></i> <span class="d-none d-sm-inline">Reports</span>
                                 </a>
                             </li>
                         </ul>
