@@ -1,0 +1,44 @@
+@model RVPark.Models.Bill
+
+@{
+    ViewData["Title"] = "Fee Details";
+}
+
+<div class="mb-4">
+    <h2>Fee Details</h2>
+    <p class="text-muted">Review reservation fee information.</p>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Reservation</dt>
+            <dd class="col-sm-9">@Model.Reservation?.ReservationNumber</dd>
+
+            <dt class="col-sm-3">Customer</dt>
+            <dd class="col-sm-9">
+                @Model.Reservation?.Customer?.FirstName @Model.Reservation?.Customer?.LastName
+            </dd>
+
+            <dt class="col-sm-3">Fee Type</dt>
+            <dd class="col-sm-9">@Model.Type</dd>
+
+            <dt class="col-sm-3">Amount</dt>
+            <dd class="col-sm-9">@Model.Amount.ToString("C")</dd>
+
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+
+            <dt class="col-sm-3">Created</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("MM/dd/yyyy")</dd>
+        </dl>
+
+        <hr />
+
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+        </div>
+    </div>
+</div>
