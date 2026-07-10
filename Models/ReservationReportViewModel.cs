@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RVPark.Models;
 
-public class ResrvationReportViewModel
+public class ReservationReportViewModel
 {
     [DataType(DataType.Date)]
     [Display(Name = "Start Date")]
@@ -12,7 +12,7 @@ public class ResrvationReportViewModel
     [Display(Name = "End Date")]
     public DateTime? EndDate { get; set; }
 
-    public List<ResrvationReportRowViewModel> Reservations { get; set; } = new();
+    public List<ReservationReportRowViewModel> Reservations { get; set; } = new();
 }
 
 public class ReservationReportRowViewModel {
