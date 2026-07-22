@@ -1,16 +1,20 @@
 @model RVPark.Models.Bill
 
 @{
+    // Sets the page title used by the shared layout.
     ViewData["Title"] = "Delete Fee";
 }
 
+@* ---------- Page Heading ---------- *@
 <div class="mb-4">
     <h2>Delete Reservation Fee</h2>
     <p class="text-danger mb-0">Are you sure you want to delete this fee?</p>
 </div>
 
+@* ---------- Fee Summary ---------- *@
 <div class="card shadow-sm border-0">
     <div class="card-body p-4">
+        @* Displays the identifying information for the fee before deletion. *@
         <dl class="row mb-0">
             <dt class="col-sm-3">Reservation</dt>
             <dd class="col-sm-9">@Model.Reservation?.ReservationNumber</dd>
@@ -35,7 +39,11 @@
 
         <hr />
 
+        @* ---------- Delete Confirmation Form ---------- *@
+
+        @* Submits to the POST Delete action after the user confirms deletion. *@
         <form asp-action="Delete">
+            @* Preserves the ID of the fee that should be deleted. *@
             <input type="hidden" asp-for="Id" />
 
             <div class="d-flex gap-2">
