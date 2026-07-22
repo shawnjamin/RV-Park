@@ -1,15 +1,18 @@
 @model RVPark.Models.ReservationReportViewModel
 
 @{
+    // Sets the page title used by the shared layout
     ViewData["Title"] = "Reservation Reports";
 }
 
+@* ---------- Page Header ---------- *@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2>Reservation Reports</h2>
         <p class="text-muted mb-0">Generate reservation reports by date range and status.</p>
     </div>
 
+    @* Only displays the Print Report button when the report contains at least one reservation. *@
     @if (Model.Reservations.Any())
     {
         <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
@@ -18,26 +21,43 @@
     }
 </div>
 
+@* ---------- Report Filter Form ---------- *@
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
+        @*
+            Submits the selected date range to the Index action
+            using query-string parameters instead of a POST request.
+        *@
         <form asp-action="Index" method="get" class="row g-3 align-items-end">
+
+            @*
+                Displays model-level validation errors,
+                such as an end date that occurs before the start date.
+            *@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+            @* ---------- Start Date Field ---------- *@
             <div class="col-md-4">
                 <label asp-for="StartDate" class="form-label fw-bold"></label>
                 <input asp-for="StartDate" class="form-control" type="date" />
             </div>
 
+            @* ---------- End Date Field ---------- *@
             <div class="col-md-4">
                 <label asp-for="EndDate" class="form-label fw-bold"></label>
                 <input asp-for="EndDate" class="form-control" type="date" />
             </div>
 
+            @* ---------- Filter Actions ---------- *@
             <div class="col-md-4">
                 <button type="submit" class="btn btn-primary">
                     Generate Report
                 </button>
 
+                @* 
+                    Reloads the Index action without date parameters,
+                    clearing the current report filters.
+                *@
                 <a asp-action="Index" class="btn btn-outline-secondary">
                     Clear
                 </a>
@@ -46,20 +66,27 @@
     </div>
 </div>
 
+@* ---------- Report Status Messages ---------- *@
 @if (Model.StartDate is null || Model.EndDate is null)
 {
+    @* Displayed before a complete date range has been selected. *@
     <div class="alert alert-info">
         Enter a start date and end date to generate a reservation report.
     </div>
 }
 else if (!Model.Reservations.Any())
 {
+    @*
+        Displayed when the selected date range is valid
+        but no matching reservations were returned.
+    *@
     <div class="alert alert-warning">
         No reservations found for the selected date range.
     </div>
 }
 else
 {
+    @* ---------- Report Results Heading ---------- *@
     <div class="mb-3">
         <h5>
             Report Results:
@@ -69,15 +96,26 @@ else
         </h5>
     </div>
 
+    @* ---------- Reservation Status Groups ---------- *@
+    
+    @*
+        Groups report rows by their simplified report status, such as
+        Completed, In Progress, Upcoming, or Cancelled.
+    *@
     @foreach (var statusGroup in Model.Reservations.GroupBy(reservation => reservation.ReportStatus))
     {
         <div class="card shadow-sm border-0 mb-4">
+            @* Displays the current report-status group name. *@
             <div class="card-header bg-dark text-white">
                 <h5 class="mb-0">@statusGroup.Key Reservations</h5>
             </div>
 
             <div class="card-body">
+
+                @* ---------- Reservation Results Table ---------- *@
                 <table class="table table-striped table-hover align-middle mb-0">
+                    
+                    @* Table column headings. *@
                     <thead>
                         <tr>
                             <th>Reservation #</th>
@@ -90,7 +128,9 @@ else
                         </tr>
                     </thead>
 
+                    @* ---------- Reservation Rows ---------- *@
                     <tbody>
+                        @* Creates one table row for each reservation in the current status group. *@
                         @foreach (var reservation in statusGroup)
                         {
                             <tr>
@@ -104,6 +144,7 @@ else
                                     -
                                     @reservation.EndDate.ToString("MM/dd/yyyy")
                                 </td>
+                                @* Displays the reservation's original system status rather than its simplified report group. *@
                                 <td>@reservation.ReservationStatus</td>
                             </tr>
                         }
@@ -114,6 +155,7 @@ else
     }
 }
 
+@* ---------- Validation Scripts ---------- *@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
