@@ -1,49 +1,69 @@
 @model RVPark.Models.Bill
 
 @{
+    // Sets the text displayed in the browser title and shared layout
     ViewData["Title"] = "Add Fee";
 }
+
+@* ---------- Page Heading ---------- *@
 
 <div class="mb-4">
     <h2>Add Reservation Fee</h2>
     <p class="text-muted">Apply a fee to an existing reservation.</p>
 </div>
 
+@* ---------- Create Fee Form ---------- *@
+
 <div class="row">
     <div class="col-md-8 col-lg-6">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
+
+                @* Submits the completed form to the POST version of the Create action *@
                 <form asp-action="Create">
+
+                    @* Displays validation errors that apply to the entire model *@
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
+                    @* ---------- Reservation Selection ---------- *@
                     <div class="mb-3">
                         <label asp-for="ReservationId" class="form-label fw-bold"></label>
+
+                        @* The reservation options are populated by FeesController *@
                         <select asp-for="ReservationId" class="form-select" asp-items="ViewBag.ReservationId">
                             <option value="">Select a reservation...</option>
                         </select>
                         <span asp-validation-for="ReservationId" class="text-danger"></span>
                     </div>
-
+                    
+                    @* ---------- Fee Type Selection ---------- *@
                     <div class="mb-3">
                         <label asp-for="Type" class="form-label fw-bold">Fee Type</label>
+
+                        @* Displays the allowed BillType values, excludes SiteCharge. *@
                         <select asp-for="Type" class="form-select" asp-items="ViewBag.FeeTypes">
                             <option value="">Select a fee type...</option>
                         </select>
                         <span asp-validation-for="Type" class="text-danger"></span>
                     </div>
 
+                    @* ---------- Fee Amount ---------- *@
                     <div class="mb-3">
                         <label asp-for="Amount" class="form-label fw-bold"></label>
+
+                        @* Allows currency values with up to two decimal places. *@
                         <input asp-for="Amount" class="form-control" type="number" step="0.01" min="0" />
                         <span asp-validation-for="Amount" class="text-danger"></span>
                     </div>
 
+                    @* ---------- Optional Description ---------- *@
                     <div class="mb-4">
                         <label asp-for="Description" class="form-label fw-bold"></label>
                         <textarea asp-for="Description" class="form-control" rows="3" placeholder="Optional notes about this fee..."></textarea>
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
 
+                    @* ---------- Form Actions ---------- *@
                     <hr class="mb-4" />
 
                     <div class="d-flex justify-content-between">
@@ -56,6 +76,7 @@
     </div>
 </div>
 
+@* Loads client-side validation scripts for the form fields. *@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

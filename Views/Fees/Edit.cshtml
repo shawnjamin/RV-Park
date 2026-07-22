@@ -1,52 +1,76 @@
 @model RVPark.Models.Bill
 
 @{
+    // Sets the page title used by the shared layout.
     ViewData["Title"] = "Edit Fee";
 }
+
+@* ---------- Page Heading ---------- *@
 
 <div class="mb-4">
     <h2>Edit Reservation Fee</h2>
     <p class="text-muted">Update an existing reservation fee.</p>
 </div>
 
+@* ---------- Edit Fee Form ---------- *@
 <div class="row">
     <div class="col-md-8 col-lg-6">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
+
+                @* Submits the updated fee to the POST version of the Edit action. *@
                 <form asp-action="Edit">
+
+                    @* Preserves values that are not directly edited in the form. *@
                     <input type="hidden" asp-for="Id" />
                     <input type="hidden" asp-for="CreatedAt" />
-
+                    
+                    @* Displays validation errors that apply to the entire model. *@
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
+                    @* ---------- Reservation Selection ---------- *@
                     <div class="mb-3">
                         <label asp-for="ReservationId" class="form-label fw-bold"></label>
+
+                        @*
+                            Displays the reservation list created by the controller
+                            and selects the fee's current reservation.
+                        *@
                         <select asp-for="ReservationId" class="form-select" asp-items="ViewBag.ReservationId">
                             <option value="">Select a reservation...</option>
                         </select>
                         <span asp-validation-for="ReservationId" class="text-danger"></span>
                     </div>
-
+                    
+                    @* ---------- Fee Type Selection ---------- *@
                     <div class="mb-3">
                         <label asp-for="Type" class="form-label fw-bold">Fee Type</label>
+
+                        @*
+                            Displays the allowed fee types and selects the fee's
+                            current type.
+                        *@
                         <select asp-for="Type" class="form-select" asp-items="ViewBag.FeeTypes">
                             <option value="">Select a fee type...</option>
                         </select>
                         <span asp-validation-for="Type" class="text-danger"></span>
                     </div>
 
+                     @* ---------- Fee Amount ---------- *@
                     <div class="mb-3">
                         <label asp-for="Amount" class="form-label fw-bold"></label>
                         <input asp-for="Amount" class="form-control" type="number" step="0.01" min="0" />
                         <span asp-validation-for="Amount" class="text-danger"></span>
                     </div>
 
+                    @* ---------- Fee Description ---------- *@
                     <div class="mb-4">
                         <label asp-for="Description" class="form-label fw-bold"></label>
                         <textarea asp-for="Description" class="form-control" rows="3"></textarea>
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
 
+                    @* ---------- Form Actions ---------- *@
                     <hr class="mb-4" />
 
                     <div class="d-flex justify-content-between">
@@ -59,6 +83,7 @@
     </div>
 </div>
 
+@* Loads client-side validation scripts for the form fields. *@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

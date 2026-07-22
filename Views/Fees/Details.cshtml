@@ -1,21 +1,26 @@
 @model RVPark.Models.Bill
 
 @{
+    // Sets the page title used by the shared layout.
     ViewData["Title"] = "Fee Details";
 }
 
+@* ---------- Page Heading and Actions ---------- *@
 <div class="mb-4 d-flex justify-content-between align-items-center">
     <div>
         <h2>Fee Details</h2>
         <p class="text-muted mb-0">Review the details of this specific charge.</p>
     </div>
     <div>
+        @* Opens the Edit page for the currently displayed fee. *@
         <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary me-2">Edit Fee</a>
         <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
     </div>
 </div>
 
+@* ---------- Fee Details Card ---------- *@
 <div class="card shadow-sm border-0">
+    @* Displays the fee type and formatted amount in the card header. *@
     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Charge: @Model?.Type.ToString()</h5>
         
@@ -23,20 +28,34 @@
     </div>
     <div class="card-body">
         <dl class="row mb-0 p-2">
+
+            @* ---------- Reservation Information ---------- *@
             <dt class="col-sm-3 text-muted mb-3">
                 @Html.DisplayNameFor(model => model.ReservationId)
             </dt>
             <dd class="col-sm-9 fw-bold mb-3">
+
+                @*
+                    Displays the reservation number when the related reservation
+                    was loaded. Falls back to the reservation ID when necessary.
+                *@
                 @(Model?.Reservation?.ReservationNumber ?? Model?.ReservationId.ToString())
             </dd>
 
+            @* ---------- Fee Description ---------- *@
             <dt class="col-sm-3 text-muted mb-3">
                 @Html.DisplayNameFor(model => model.Description)
             </dt>
             <dd class="col-sm-9 mb-3">
+
+                @*
+                    Displays a default message when the fee does not include
+                    a description.
+                *@
                 @(string.IsNullOrEmpty(Model?.Description) ? "No description provided." : Model.Description)
             </dd>
 
+            @* ---------- Date Applied ---------- *@
             <dt class="col-sm-3 text-muted mb-3">
                 Date Applied
             </dt>

@@ -1,14 +1,23 @@
 @model IEnumerable<RVPark.Models.Bill>
 
 @{
+    // Sets the page title used by the shared layout.
     ViewData["Title"] = "Manage Fees";
 }
 
+@* ---------- Page Header ---------- *@
+
+@*
+    Uses the shared page-header partial to display the page title
+    and a button linking to the Create action.
+*@
 <partial name="_PageHeader" model='("Manage Fees", "Add New Fee", Url.Action("Create"))' />
 
+@* ---------- Fees Table ---------- *@
 <div class="card shadow-sm border-0">
     <div class="card-body">
         <table class="table table-striped table-hover align-middle mb-0">
+             @* ---------- Table Headings ---------- *@
             <thead class="table-dark">
                 <tr>
                     <th>Reservation</th>
@@ -20,11 +29,14 @@
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
+            @* ---------- Table Records ---------- *@
             <tbody>
                 @if (Model != null && Model.Any())
                 {
+                    // Create one table row and delete modal for each fee.
                     foreach (var fee in Model) 
                     {
+                        @* ---------- Fee Row ---------- *@
                         <tr>
                             <td class="fw-bold">@fee.Reservation?.ReservationNumber</td>
                             <td>
@@ -35,20 +47,34 @@
                             <td>@fee.Amount.ToString("C")</td>
                             <td>@fee.CreatedAt.ToLocalTime().ToString("MM/dd/yyyy")</td>
                             <td class="text-end">
+
+                                @*
+                                    Renders the shared Details, Edit, and Delete
+                                    controls using the current fee's ID.
+                                *@
                                 <partial name="_TableActionButtons" model="@fee.Id" />
                             </td>
                         </tr>
 
+                        @* ---------- Delete Confirmation Modal ---------- *@
+
+                        @*
+                            Places a uniquely identified Bootstrap modal directly
+                            after each fee row. The fee ID prevents modal ID conflicts.
+                        *@
                         <tr>
                             <td colspan="7" class="p-0 border-0">
                                 <div class="modal fade" id="deleteModal-@fee.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@fee.Id" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
+
+                                            @* Modal heading and close button. *@
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="deleteModalLabel-@fee.Id">Delete Fee</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
 
+                                            @* Displays identifying details before deletion. *@
                                             <div class="modal-body">
                                                 Are you sure you want to delete this fee?
 
@@ -59,12 +85,18 @@
                                                     <strong>Amount:</strong> @fee.Amount.ToString("C")
                                                 </div>
                                             </div>
-
+                                            
+                                            @* Modal cancellation and deletion controls. *@
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                                                     Cancel
                                                 </button>
 
+                                                @*
+                                                    Posts the fee ID to the Delete action.
+                                                    The anti-forgery token protects against
+                                                    cross-site request forgery.
+                                                *@
                                                 <form asp-action="Delete" asp-route-id="@fee.Id" method="post" class="d-inline">
                                                     @Html.AntiForgeryToken()
                                                     <button type="submit" class="btn btn-danger">
@@ -81,6 +113,7 @@
                 }
                 else
                 {
+                    @* ---------- Empty Table Message ---------- *@
                     <tr>
                         <td colspan="7" class="text-center py-4 text-muted">
                             No reservation fees found. Click "Add New Fee" to get started.
