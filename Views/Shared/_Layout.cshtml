@@ -1,94 +1,69 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - RVPark</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - RV Park</title>
+    
+    @* Core stylesheets *@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RVPark.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-    <main role="main" class="pb-3">
-        <div id="sidebar" class="container-fluid">
-            <div class="row flex-nowrap">
+    @* Top navigation bar *@
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow">
+            <div class="container-fluid">
+                @* Brand logo *@
+                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">RV Park</a>
                 
-                <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
-                    <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
-                        <h3>Admin Portal</h3>
-                        @{
-                            // Helper to determine if link is active
-                            string IsActive(string controller)
-                            {
-                                return ViewContext.RouteData.Values["controller"]?.ToString() == controller ? "active" : "";
-                            }
-                        }
-
-                        <ul class="nav nav-pills flex-column mb-auto" style="list-style: none; padding-left: 0;">
-                            
-                            <li class="nav-item">
-                                <a asp-controller="Home" asp-action="Index" class="nav-link sidebar-link @IsActive("Home")">
-                                    <i class="fs-4 bi-house me-2"></i> <span class="d-none d-sm-inline">Dashboard</span>
-                                </a>
-                            </li>
-
-                            <li class="nav-item mt-3 mb-1">
-                                <span class="text-secondary small fw-bold text-uppercase px-2" style="font-size: 0.75rem;">Park Management</span>
-                            </li>
-                            
-                            <li>
-                                <a asp-controller="RvSites" asp-action="Index" class="nav-link sidebar-link @IsActive("RvSites")">
-                                    <i class="fs-4 bi-geo-alt me-2"></i> <span class="d-none d-sm-inline">Manage Sites</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a asp-controller="Pricing" asp-action="Index" class="nav-link sidebar-link @IsActive("Pricing")">
-                                    <i class="fs-4 bi-tags me-2"></i> <span class="d-none d-sm-inline">Maintain Pricing</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a asp-controller="Fees" asp-action="Index" class="nav-link sidebar-link @IsActive("Fees")">
-                                    <i class="fs-4 bi-cash-coin me-2"></i> <span class="d-none d-sm-inline">Manage Fees</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a asp-controller="Employees" asp-action="Index" class="nav-link sidebar-link @IsActive("Employees")">
-                                    <i class="fs-4 bi-people me-2"></i>
-                                    <span class="d-none d-sm-inline">Employee Accounts</span>
-                                </a>
-                            </li>
-
-                            <li class="nav-item mt-3 mb-1">
-                                <span class="text-secondary small fw-bold text-uppercase px-2" style="font-size: 0.75rem;">Bookings</span>
-                            </li>
-
-                            <li>
-                                <a asp-controller="Reservations" asp-action="Index" class="nav-link sidebar-link @IsActive("Reservations")">
-                                    <i class="fs-4 bi-calendar-check me-2"></i> <span class="d-none d-sm-inline">Manage Reservations</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a asp-controller="Reports" asp-action="Index" class="nav-link sidebar-link @IsActive("Reports")">
-                                    <i class="fs-4 bi-file-earmark-bar-graph me-2"></i> <span class="d-none d-sm-inline">Reports</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                @* Navigation links *@
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="RvSites" asp-action="Browse">Browse Sites</a>
+                        </li>
+                    </ul>
+                    
+                    @* Authentication links *@
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+                        </li>
+                    </ul>
                 </div>
-
-                <div class="col py-3">
-                    @RenderBody() </div>
-
             </div>
-        </div>
-    </main>
+        </nav>
+    </header>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - RVPark - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    @* Page body *@
+    <div class="container mt-4">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @* Footer *@
+    <footer class="border-top footer text-muted mt-5 py-3">
+        <div class="container text-center">
+            &copy; 2026 - RV Park - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
         </div>
     </footer>
+
+    @* Javascript libraries *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
