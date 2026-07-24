@@ -1,102 +1,146 @@
 ﻿@{
-    ViewData["Title"] = "Admin Dashboard";
+    ViewData["Title"] = "Home";
+    Layout = "_Layout";
 }
 
-<div class="mb-4 d-flex justify-content-between align-items-center">
-    <div>
-        <h2 class="fw-bold">Dashboard Overview</h2>
-        <p class="text-muted mb-0">Welcome to the RV Park Admin Portal.</p>
-    </div>
-    <div>
-        <span class="text-muted"><i class="bi bi-calendar-event me-1"></i> @DateTime.Now.ToString("MMMM dd, yyyy")</span>
+@* Hero *@
+<div class="px-4 py-5 my-5 text-center bg-dark text-white rounded-3 shadow">
+    <h1 class="display-4 fw-bold">Welcome to RV Park</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4">Experience the great outdoors with premium amenities, spacious sites, and beautiful scenery. Book your next adventure today.</p>
     </div>
 </div>
 
-@* Dashboard stats(currently placeholder data) *@
-<div class="row g-4 mb-5">
-    <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 border-bottom border-primary border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h6 class="text-muted text-uppercase fw-bold mb-0">Today's Check-ins</h6>
-                    <i class="fs-4 bi-box-arrow-in-right text-primary"></i>
+@* Site search bar *@
+<div class="container mb-5" style="margin-top: -60px; position: relative; z-index: 10;">
+    <div class="card shadow-lg border-0">
+        <div class="card-body p-4">
+            <form asp-controller="RvSites" asp-action="Browse" method="get">
+                <div class="row g-3 align-items-end">
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Check-In</label>
+                        <input type="date" name="checkIn" class="form-control" required />
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Check-Out</label>
+                        <input type="date" name="checkOut" class="form-control" required />
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Site Type</label>
+                        <select name="siteType" class="form-select">
+                            <option value="">Any Type</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Premium">Premium</option>
+                            <option value="Pull-Through">Pull-Through</option>
+                            <option value="Tent">Tent</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">RV Length (ft)</label>
+                        <input type="number" name="rvLength" class="form-control" placeholder="e.g. 30" />
+                    </div>
+                    
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </div>
+                    
                 </div>
-                <h2 class="fw-bold mb-0">12</h2>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 border-bottom border-success border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h6 class="text-muted text-uppercase fw-bold mb-0">Active Sites</h6>
-                    <i class="fs-4 bi-geo-alt text-success"></i>
-                </div>
-                <h2 class="fw-bold mb-0">45 / 50</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 border-bottom border-warning border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h6 class="text-muted text-uppercase fw-bold mb-0">Pending Payments</h6>
-                    <i class="fs-4 bi-cash text-warning"></i>
-                </div>
-                <h2 class="fw-bold mb-0">4</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 border-bottom border-danger border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h6 class="text-muted text-uppercase fw-bold mb-0">Needs Attention</h6>
-                    <i class="fs-4 bi-exclamation-triangle text-danger"></i>
-                </div>
-                <h2 class="fw-bold mb-0">1</h2>
-            </div>
+            </form>
         </div>
     </div>
 </div>
 
-@* Quick actions section with shortcuts to other tabs *@
-<h5 class="mb-3 border-bottom pb-2">Quick Actions</h5>
-
-<div class="row g-4">
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-calendar-check text-primary mb-3" style="font-size: 2.5rem;"></i>
-                <h5 class="fw-bold">Manage Reservations</h5>
-                <p class="text-muted small">Update dates, change sites, and process cancellations.</p>
-                <a asp-controller="Reservations" asp-action="Index" class="btn btn-primary w-100 mt-2">Go to Reservations</a>
+@* Park information grid *@
+<div class="container my-5">
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        
+        <div class="col">
+            <div class="h-100 p-4 bg-light border rounded-3">
+                <h3 class="fw-bold">Park Amenities</h3>
+                <ul class="mt-3 text-muted">
+                    <li class="mb-2">Full Hookups (Water, Sewer, Electric)</li>
+                    <li class="mb-2">High-Speed Wi-Fi</li>
+                    <li class="mb-2">Clean Showers & Restrooms</li>
+                    <li class="mb-2">Dog Park & Walking Trails</li>
+                </ul>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-geo-alt text-success mb-3" style="font-size: 2.5rem;"></i>
-                <h5 class="fw-bold">Site Configuration</h5>
-                <p class="text-muted small">Add new RV sites, manage hookups, and upload photos.</p>
-                <a asp-controller="RvSites" asp-action="Index" class="btn btn-success w-100 mt-2">Go to Sites</a>
+        
+        @* Policies block *@
+        <div class="col">
+            <div class="h-100 p-4 bg-light border rounded-3">
+                <h3 class="fw-bold">Rates & Policies</h3>
+                @* Summarized text for the card *@
+                <p class="mt-3 text-muted">Check-in time is 2:00 PM and check-out is 11:00 AM. Base rates cover 2 adults. Quiet hours are strictly enforced from 10:00 PM to 7:00 AM.</p>
+                
+                <button type="button" class="btn btn-outline-secondary mt-2" data-bs-toggle="modal" data-bs-target="#policiesModal">
+                    View Full Policies
+                </button>
             </div>
         </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-file-earmark-bar-graph text-dark mb-3" style="font-size: 2.5rem;"></i>
-                <h5 class="fw-bold">Generate Reports</h5>
-                <p class="text-muted small">Pull reservation data and export to PDF by date range.</p>
-                <a asp-controller="Reports" asp-action="Index" class="btn btn-dark w-100 mt-2">Go to Reports</a>
+        
+        <div class="col">
+            <div class="h-100 p-4 bg-light border rounded-3">
+                <h3 class="fw-bold">Location</h3>
+                <p class="mt-3 text-muted">Located just minutes from the national park entrance, offering the perfect basecamp for your hiking and sightseeing adventures.</p>
+                <a href="#" class="btn btn-outline-secondary mt-2">Get Directions</a>
             </div>
+        </div>
+        
+    </div>
+</div>
+
+@* Full Policies Modal *@
+<div class="modal fade" id="policiesModal" tabindex="-1" aria-labelledby="policiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            
+            @* Modal Header *@
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="policiesModalLabel">RV Park Rates & Policies</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            @* Modal Body (Update this text with your teacher's exact scenario!) *@
+            <div class="modal-body p-4">
+                <h5 class="fw-bold">General Park Rules</h5>
+                <ul>
+                    <li><strong>Check-In:</strong> 2:00 PM | <strong>Check-Out:</strong> 11:00 AM.</li>
+                    <li><strong>Quiet Hours:</strong> 10:00 PM to 7:00 AM. Please be considerate of your neighbors.</li>
+                    <li><strong>Speed Limit:</strong> 5 MPH strictly enforced throughout the park.</li>
+                </ul>
+
+                <h5 class="fw-bold mt-4">Rates & Occupancy</h5>
+                <ul>
+                    <li>Base daily rates include up to 2 adults and 2 children.</li>
+                    <li>Additional guests may incur an additional nightly fee.</li>
+                    <li><strong>Seasonal Pricing:</strong> Rates are subject to change during peak seasons and special holiday/event weekends.</li>
+                </ul>
+
+                <h5 class="fw-bold mt-4">Pet Policy</h5>
+                <ul>
+                    <li>Pets are welcome but must be kept on a maximum 6-foot leash at all times.</li>
+                    <li>Owners are responsible for cleaning up after their pets immediately.</li>
+                    <li>Excessive barking or aggressive behavior will result in being asked to leave the park without a refund.</li>
+                </ul>
+
+                <h5 class="fw-bold mt-4">Cancellations & Refunds</h5>
+                <ul>
+                    <li>Cancellations made at least 48 hours prior to the scheduled check-in date will receive a full refund minus a standard processing fee.</li>
+                    <li>Cancellations made within 48 hours of check-in will forfeit the first night's deposit.</li>
+                    <li>No refunds will be issued for early departures or inclement weather.</li>
+                </ul>
+            </div>
+            
+            @* Modal Footer *@
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+            
         </div>
     </div>
 </div>

@@ -15,6 +15,27 @@ namespace RVPark.Controllers
             _context = context;
         }
 
+        // Public customer dashboard
+        [HttpGet]
+        public IActionResult MyReservations()
+        {
+            // Mock data for UI testing
+            var mockReservations = new List<Reservation>
+            {
+                new Reservation 
+                { 
+                    Id = 1, 
+                    ReservationNumber = "RES-1042", 
+                    StartDate = DateTime.Now.AddDays(12), 
+                    EndDate = DateTime.Now.AddDays(15),
+                    Status = ReservationStatus.Confirmed,
+                    Site = new Site { SiteNumber = "B14" }
+                }
+            };
+
+            return View(mockReservations);
+        }
+
         // GET: Reservations (Includes the Search logic from the rubric)
         public async Task<IActionResult> Index(string searchQuery)
         {

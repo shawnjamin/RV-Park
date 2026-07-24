@@ -23,6 +23,20 @@ namespace RVPark.Controllers
             _hostEnvironment = hostEnvironment;
         }
 
+        // Public search results
+        [HttpGet]
+        public IActionResult Browse(string checkIn, string checkOut, string siteType, int? rvLength)
+        {
+            // Mock sites using enum values for UI testing
+            var mockSites = new List<Site> 
+            { 
+                new Site { Id = 1, SiteNumber = "A1", HookupType = HookupType.FullHookup },
+                new Site { Id = 2, SiteNumber = "A2", HookupType = HookupType.PartialHookup }
+            };
+
+            return View(mockSites);
+        }
+
         // GET: RvSites
         public async Task<IActionResult> Index()
         {
