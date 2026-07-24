@@ -1,0 +1,75 @@
+@model IEnumerable<RVPark.Models.Site>
+
+@{
+    ViewData["Title"] = "Available Sites";
+    Layout = "_Layout";
+}
+
+@* Search criteria header *@
+<div class="bg-light p-4 rounded-3 shadow-sm mb-4 mt-3">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2 class="fw-bold mb-1">Available Campsites</h2>
+            <p class="text-muted mb-0">
+                Showing results for: 
+                <span class="fw-bold text-dark">@Context.Request.Query["checkIn"]</span> to 
+                <span class="fw-bold text-dark">@Context.Request.Query["checkOut"]</span>
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Modify Search</a>
+        </div>
+    </div>
+</div>
+
+@* Results grid *@
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+    
+    @* Check if there are any results *@
+    @if (Model != null && Model.Any())
+    {
+        foreach (var site in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    
+                    @* Site image placeholder *@
+                    <img src="~/images/sites/placeholder.jpg" class="card-img-top" alt="Site @site.SiteNumber" style="height: 200px; object-fit: cover;">
+                    
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold mb-0">Site @site.SiteNumber</h5>
+                            <span class="badge bg-success">Available</span>
+                        </div>
+                        
+                        <p class="text-muted small mb-3">@site.SiteType?.Name</p>
+                        
+                        <ul class="list-unstyled small mb-3">
+                            @* TODO: Replace "30" with @site.MaxRvLength once Joey adds it to the DB model *@
+                            <li class="mb-1"><i class="fa-solid fa-ruler-horizontal text-secondary me-2"></i>Max RV Length: 30 ft</li>
+                            <li class="mb-1"><i class="fa-solid fa-plug text-secondary me-2"></i>Hookups: @site.HookupType</li>
+                        </ul>
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center p-3">
+                        <div>
+                            @* TODO: Replace "45.00" with your actual pricing logic once the backend builds it *@
+                            <span class="fs-5 fw-bold text-primary">$45.00</span><span class="small text-muted">/night</span>
+                        </div>
+                        <a asp-controller="Reservations" asp-action="Create" asp-route-siteId="@site.Id" asp-route-checkIn="@Context.Request.Query["checkIn"]" asp-route-checkOut="@Context.Request.Query["checkOut"]" class="btn btn-primary">Book Now</a>
+                    </div>
+                    
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        @* Empty state *@
+        <div class="col-12 text-center py-5">
+            <i class="fa-regular fa-face-frown fs-1 text-muted mb-3"></i>
+            <h3>No sites available</h3>
+            <p class="text-muted">We couldn't find any sites matching your dates or RV length. Please try adjusting your search criteria.</p>
+        </div>
+    }
+</div>
