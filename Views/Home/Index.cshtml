@@ -70,11 +70,16 @@
             </div>
         </div>
         
+        @* Policies block *@
         <div class="col">
             <div class="h-100 p-4 bg-light border rounded-3">
                 <h3 class="fw-bold">Rates & Policies</h3>
-                <p class="mt-3 text-muted">Check-in time is 2:00 PM and check-out is 11:00 AM. Quiet hours are strictly enforced from 10:00 PM to 7:00 AM.</p>
-                <a href="#" class="btn btn-outline-secondary mt-2">View Full Policies</a>
+                @* Summarized text for the card *@
+                <p class="mt-3 text-muted">Check-in time is 2:00 PM and check-out is 11:00 AM. Base rates cover 2 adults. Quiet hours are strictly enforced from 10:00 PM to 7:00 AM.</p>
+                
+                <button type="button" class="btn btn-outline-secondary mt-2" data-bs-toggle="modal" data-bs-target="#policiesModal">
+                    View Full Policies
+                </button>
             </div>
         </div>
         
@@ -86,5 +91,56 @@
             </div>
         </div>
         
+    </div>
+</div>
+
+@* Full Policies Modal *@
+<div class="modal fade" id="policiesModal" tabindex="-1" aria-labelledby="policiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            
+            @* Modal Header *@
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="policiesModalLabel">RV Park Rates & Policies</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            @* Modal Body (Update this text with your teacher's exact scenario!) *@
+            <div class="modal-body p-4">
+                <h5 class="fw-bold">General Park Rules</h5>
+                <ul>
+                    <li><strong>Check-In:</strong> 2:00 PM | <strong>Check-Out:</strong> 11:00 AM.</li>
+                    <li><strong>Quiet Hours:</strong> 10:00 PM to 7:00 AM. Please be considerate of your neighbors.</li>
+                    <li><strong>Speed Limit:</strong> 5 MPH strictly enforced throughout the park.</li>
+                </ul>
+
+                <h5 class="fw-bold mt-4">Rates & Occupancy</h5>
+                <ul>
+                    <li>Base daily rates include up to 2 adults and 2 children.</li>
+                    <li>Additional guests may incur an additional nightly fee.</li>
+                    <li><strong>Seasonal Pricing:</strong> Rates are subject to change during peak seasons and special holiday/event weekends.</li>
+                </ul>
+
+                <h5 class="fw-bold mt-4">Pet Policy</h5>
+                <ul>
+                    <li>Pets are welcome but must be kept on a maximum 6-foot leash at all times.</li>
+                    <li>Owners are responsible for cleaning up after their pets immediately.</li>
+                    <li>Excessive barking or aggressive behavior will result in being asked to leave the park without a refund.</li>
+                </ul>
+
+                <h5 class="fw-bold mt-4">Cancellations & Refunds</h5>
+                <ul>
+                    <li>Cancellations made at least 48 hours prior to the scheduled check-in date will receive a full refund minus a standard processing fee.</li>
+                    <li>Cancellations made within 48 hours of check-in will forfeit the first night's deposit.</li>
+                    <li>No refunds will be issued for early departures or inclement weather.</li>
+                </ul>
+            </div>
+            
+            @* Modal Footer *@
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+            
+        </div>
     </div>
 </div>
