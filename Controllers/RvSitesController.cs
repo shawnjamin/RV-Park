@@ -27,11 +27,11 @@ namespace RVPark.Controllers
         [HttpGet]
         public IActionResult Browse(string checkIn, string checkOut, string siteType, int? rvLength)
         {
-            // Dummy data for UI testing
+            // Mock sites using enum values for UI testing
             var mockSites = new List<Site> 
             { 
-                new Site { Id = 1, SiteNumber = "A1", HookupType = "Full" },
-                new Site { Id = 2, SiteNumber = "A2", HookupType = "Water/Electric" }
+                new Site { Id = 1, SiteNumber = "A1", HookupType = HookupType.FullHookup },
+                new Site { Id = 2, SiteNumber = "A2", HookupType = HookupType.PartialHookup }
             };
 
             return View(mockSites);

@@ -1,0 +1,104 @@
+@{
+    ViewData["Title"] = "Complete Reservation";
+    Layout = "_Layout";
+}
+
+@* Page header *@
+<div class="py-4 text-center">
+    <h2 class="fw-bold">Complete Your Reservation</h2>
+    <p class="lead text-muted">Almost there! Please fill out the remaining details below.</p>
+</div>
+
+@* Main layout row *@
+<div class="row g-5 mb-5">
+    
+    @* Form column *@
+    <div class="col-md-7 col-lg-8">
+        <h4 class="mb-3">Guest Information</h4>
+        <form asp-controller="Reservations" asp-action="Create" method="post">
+            
+            @* Pass through hidden data *@
+            <input type="hidden" name="SiteId" value="@Context.Request.Query["siteId"]" />
+            <input type="hidden" name="CheckIn" value="@Context.Request.Query["checkIn"]" />
+            <input type="hidden" name="CheckOut" value="@Context.Request.Query["checkOut"]" />
+
+            @* Guest counts *@
+            <div class="row g-3 mb-4">
+                <div class="col-sm-4">
+                    <label class="form-label fw-bold">Adults</label>
+                    <input type="number" name="Adults" class="form-control" value="1" min="1" required />
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label fw-bold">Children</label>
+                    <input type="number" name="Children" class="form-control" value="0" min="0" />
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label fw-bold">Pets</label>
+                    <input type="number" name="Pets" class="form-control" value="0" min="0" />
+                </div>
+            </div>
+
+            @* Special requests *@
+            <div class="mb-4">
+                <label class="form-label fw-bold">Special Requests / Notes</label>
+                <textarea name="Notes" class="form-control" rows="3" placeholder="Any special needs or late arrival notices?"></textarea>
+            </div>
+
+            <hr class="my-4">
+
+            @* Payment UI placeholder *@
+            <h4 class="mb-3">Payment Information</h4>
+            <div class="alert alert-info border-info">
+                <div class="d-flex align-items-center">
+                    <i class="fa-brands fa-stripe fs-1 text-primary me-3"></i>
+                    <div>
+                        <strong>Secure Checkout</strong><br/>
+                        <span class="small">You will be securely routed to Stripe to complete your credit card payment upon submitting this form.</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Submit button *@
+            <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">Proceed to Secure Payment</button>
+        </form>
+    </div>
+
+    @* Trip summary sidebar *@
+    <div class="col-md-5 col-lg-4 order-md-last">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white py-3">
+                <h5 class="mb-0">Trip Summary</h5>
+            </div>
+            <div class="card-body bg-light">
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between lh-sm bg-transparent">
+                        <div>
+                            <h6 class="my-0">Check-In</h6>
+                            <small class="text-muted">@Context.Request.Query["checkIn"]</small>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between lh-sm bg-transparent">
+                        <div>
+                            <h6 class="my-0">Check-Out</h6>
+                            <small class="text-muted">@Context.Request.Query["checkOut"]</small>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between lh-sm bg-transparent">
+                        <div>
+                            <h6 class="my-0">Site Selection</h6>
+                            <small class="text-muted">Site ID: @Context.Request.Query["siteId"]</small>
+                        </div>
+                    </li>
+                </ul>
+
+                @* Total calculation *@
+                <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3">
+                    <span class="fw-bold fs-5">Total Cost</span>
+                    @* TODO: Replace with dynamic total from backend *@
+                    <strong class="fs-4 text-success">$135.00</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
