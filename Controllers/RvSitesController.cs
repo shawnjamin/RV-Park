@@ -25,16 +25,60 @@ namespace RVPark.Controllers
 
         // Public search results
         [HttpGet]
-        public IActionResult Browse(string checkIn, string checkOut, string siteType, int? rvLength)
+        public async Task<IActionResult> Browse(DateTime? checkIn, DateTime? checkOut, string? siteType, int? rvLength)
         {
-            // Mock sites using enum values for UI testing
-            var mockSites = new List<Site> 
-            { 
-                new Site { Id = 1, SiteNumber = "A1", HookupType = HookupType.FullHookup },
-                new Site { Id = 2, SiteNumber = "A2", HookupType = HookupType.PartialHookup }
-            };
+            if (checkIn.HasValue && checkOut.HasValue && checkOut.Value <= checkIn.Value)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Check out date must be after check in."
+                );
 
-            return View(mockSites);
+                return View(Array.Empty<Site>());
+            }
+            
+            var sitesQuery = _context.Sites
+                .AsNoTracking()
+                .Include(site => site.SiteType)
+                .Include(site => site.Photos)
+                .Where(site => site.IsActive);
+
+            // Filter by site type when the customer selects one.
+            if (!string.IsNullOrWhiteSpace(siteType))
+            {
+                sitesQuery = sitesQuery.Where(
+                    site => site.SiteType != null &&
+                    site.SiteType.Name.Contains(siteType));
+            }
+
+            // Exclude campsites with overlapping active reservations.
+            if (checkIn.HasValue && checkOut.HasValue)
+            {
+                sitesQuery = sitesQuery.Where( site =>
+                    !site.Reservations.Any(reservation =>
+                        reservation.Status != ReservationStatus.Cancelled &&
+                        reservation.Status != ReservationStatus.Completed &&
+                        reservation.StartDate < checkOut.Value &&
+                        reservation.EndDate > checkIn.Value));
+            }
+
+            /* TODO
+            * The RV Length can't currently be filtered because the Site model
+            * does not contain a MaxRvLength Property.
+            *
+            * Once that field is added, we will use:
+            *if (rvLength.HasValue)
+            *{
+            *    sitesQuery = sitesQuery.Where(site =>
+            *        site.MaxRvLength >= rvLength.Value);
+            *}
+            */
+
+            var availableSites = await sitesQuery
+                .OrderBy(site => site.SiteNumber)
+                .ToListAsync();
+
+            return View(availableSites);
         }
 
         // GET: RvSites
