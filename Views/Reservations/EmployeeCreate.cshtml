@@ -1,0 +1,142 @@
+@model RVPark.Models.Reservation
+
+@{
+    ViewData["Title"] = "Walk-In Reservation";
+    Layout = "_AdminLayout";
+}
+
+@* Page header *@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">Walk-In Reservation</h2>
+        <p class="text-muted">Process a new reservation and manual payment for an in-person guest.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to Dashboard</a>
+</div>
+
+@* Main form container *@
+<form asp-controller="Reservations" asp-action="EmployeeCreate" method="post">
+    <div class="row g-4">
+        
+        @* Left column: Customer & Trip Details *@
+        <div class="col-lg-8">
+            
+            @* Customer selection section *@
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">1. Customer Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold">Search Existing Customer</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search by name, email, or phone...">
+                                <button class="btn btn-outline-primary" type="button">Lookup</button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 text-center mb-2">
+                            <span class="text-muted small">--- OR CREATE NEW ---</span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="NewCustomer.FirstName" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="NewCustomer.LastName" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="NewCustomer.Email" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" name="NewCustomer.PhoneNumber" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Trip details section *@
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">2. Trip Details</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Check-In Date</label>
+                            <input type="date" asp-for="StartDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Check-Out Date</label>
+                            <input type="date" asp-for="EndDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Assign Site</label>
+                            <select asp-for="SiteId" class="form-select" required>
+                                <option value="">-- Select an Available Site --</option>
+                                @* Options populated by ViewBag in controller *@
+                                <option value="1">Site A1 (Full Hookup)</option>
+                                <option value="2">Site A2 (Water/Electric)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">RV Length (ft)</label>
+                            <input type="number" name="RvLength" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        @* Right column: Payment processing *@
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 fw-bold">3. Payment</h5>
+                </div>
+                <div class="card-body p-4">
+                    
+                    @* Cost breakdown *@
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Nightly Rate</span>
+                        <span>$45.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span class="text-muted">Nights</span>
+                        <span>3</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="fw-bold fs-5">Total Due</span>
+                        <strong class="fs-4 text-primary">$135.00</strong>
+                    </div>
+
+                    @* Manual payment method *@
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Payment Method</label>
+                        <select name="PaymentMethod" class="form-select border-primary" required>
+                            <option value="">Select Method...</option>
+                            <option value="CreditCard_Manual">Credit Card (Manual Entry)</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Check">Check</option>
+                        </select>
+                    </div>
+
+                    @* Transaction notes *@
+                    <div class="mb-4">
+                        <label class="form-label">Transaction ID / Check #</label>
+                        <input type="text" name="TransactionReference" class="form-control" placeholder="Optional reference..." />
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">Process & Book</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</form>

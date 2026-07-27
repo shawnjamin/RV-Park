@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
+using RVPark.Models;
+using RVPark.Services;
 
 var seedRequested = args.Contains("--seed", StringComparer.OrdinalIgnoreCase);
 var builderArgs = args
@@ -14,6 +17,10 @@ EnsureSqliteDirectoryExists(connectionString);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Registers PasswordHasher which can be accessed through Dependency Injection
+builder.Services.AddScoped<IPasswordHasher<User>, UserPasswordHasher>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
@@ -33,8 +40,10 @@ if (seedRequested || app.Configuration.GetValue<bool>("Database:SeedOnStartup"))
     var logger = scope.ServiceProvider
         .GetRequiredService<ILoggerFactory>()
         .CreateLogger("DatabaseSeeder");
+    var passwordHasher = scope.ServiceProvider
+        .GetRequiredService<IPasswordHasher<User>>();
 
-    await DatabaseSeeder.SeedAsync(dbContext, logger);
+    await DatabaseSeeder.SeedAsync(dbContext, logger, passwordHasher);
 }
 
 if (seedRequested)

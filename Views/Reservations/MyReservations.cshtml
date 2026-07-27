@@ -47,7 +47,7 @@
                             
                             @* Action buttons *@
                             <div class="col-md-4 text-md-end">
-                                <a asp-action="Edit" asp-route-id="@res.Id" class="btn btn-outline-primary mb-2 mb-md-0 me-md-2">Modify</a>
+                                <a asp-action="EditMyTrip" asp-route-id="@res.Id" class="btn btn-outline-primary mb-2 mb-md-0 me-md-2">Modify</a>
                                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal-@res.Id">Cancel</button>
                             </div>
                             
@@ -70,7 +70,7 @@
                         </div>
                         <div class="modal-footer bg-light">
                             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep Reservation</button>
-                            <form asp-action="Cancel" asp-route-id="@res.Id" method="post">
+                            <form asp-action="CancelMyTrip" asp-route-id="@res.Id" method="post">
                                 <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
                             </form>
                         </div>
