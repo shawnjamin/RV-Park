@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Models;
 
@@ -6,10 +7,12 @@ namespace RVPark.Data;
 public static class DatabaseSeeder
 {
     private const string PlaceholderPasswordHash = "TEST-ONLY-NOT-A-REAL-PASSWORD-HASH";
+    private const string SeedPassword = "RVParkSeed123!";
 
     public static async Task SeedAsync(
         ApplicationDbContext context,
         ILogger logger,
+        IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken = default)
     {
         await EnsureNoPendingMigrationsAsync(context, cancellationToken);
@@ -19,8 +22,8 @@ public static class DatabaseSeeder
         var siteTypes = await SeedSiteTypesAsync(context, cancellationToken);
         var sites = await SeedSitesAsync(context, siteTypes, cancellationToken);
         await SeedSitePhotosAsync(context, sites, cancellationToken);
-        var customers = await SeedCustomersAsync(context, cancellationToken);
-        await SeedEmployeesAsync(context, cancellationToken);
+        var customers = await SeedCustomersAsync(context, passwordHasher, cancellationToken);
+        await SeedEmployeesAsync(context, passwordHasher, cancellationToken);
         var reservations = await SeedReservationsAsync(context, customers, sites, cancellationToken);
         var bills = await SeedBillsAsync(context, reservations, cancellationToken);
         await SeedPaymentsAsync(context, bills, cancellationToken);
@@ -208,6 +211,7 @@ public static class DatabaseSeeder
 
     private static async Task<Dictionary<string, Customer>> SeedCustomersAsync(
         ApplicationDbContext context,
+        IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken)
     {
         var seedCustomers = new[]
@@ -219,7 +223,7 @@ public static class DatabaseSeeder
 
         foreach (var seedCustomer in seedCustomers)
         {
-            var user = await EnsureUserAsync(context, seedCustomer.Email, cancellationToken);
+            var user = await EnsureUserAsync(context, seedCustomer.Email, passwordHasher, cancellationToken);
 
             if (!await context.Customers.AnyAsync(customer => customer.Id == user.Id, cancellationToken))
             {
@@ -246,6 +250,7 @@ public static class DatabaseSeeder
 
     private static async Task SeedEmployeesAsync(
         ApplicationDbContext context,
+        IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken)
     {
         var seedEmployees = new[]
@@ -257,7 +262,7 @@ public static class DatabaseSeeder
 
         foreach (var seedEmployee in seedEmployees)
         {
-            var user = await EnsureUserAsync(context, seedEmployee.Email, cancellationToken);
+            var user = await EnsureUserAsync(context, seedEmployee.Email, passwordHasher, cancellationToken);
 
             if (!await context.Employees.AnyAsync(employee => employee.Id == user.Id, cancellationToken))
             {
@@ -568,21 +573,29 @@ public static class DatabaseSeeder
     private static async Task<User> EnsureUserAsync(
         ApplicationDbContext context,
         string email,
+        IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken)
     {
         var existingUser = await context.Users.FirstOrDefaultAsync(user => user.Email == email, cancellationToken);
 
         if (existingUser is not null)
         {
+            if (existingUser.PasswordHash == PlaceholderPasswordHash)
+            {
+                existingUser.PasswordHash = passwordHasher.HashPassword(existingUser, SeedPassword);
+                await context.SaveChangesAsync(cancellationToken);
+            }
+
             return existingUser;
         }
 
         var user = new User
         {
             Email = email,
-            PasswordHash = PlaceholderPasswordHash,
             CreatedAt = new DateTime(2026, 7, 1, 12, 0, 0)
         };
+
+        user.PasswordHash = passwordHasher.HashPassword(user, SeedPassword);
 
         context.Users.Add(user);
         await context.SaveChangesAsync(cancellationToken);
