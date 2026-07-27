@@ -1,17 +1,29 @@
 @* Authentication navigation state *@
 <ul class="navbar-nav">
     
-    @* TEMPORARY BYPASS: Change 'User.Identity?.IsAuthenticated == true' to 'true' to force the logged-in UI for testing *@
+    @* Bypass: Forced true for UI testing *@
     @if (true) 
     {
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle text-dark fw-bold" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-circle-user me-1"></i> My Account
+                <i class="fa-solid fa-circle-user me-1"></i> Testing Bypass
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="accountDropdown">
+                
+                @* Customer view link *@
                 <li>
-                    <a class="dropdown-item py-2" asp-controller="Reservations" asp-action="MyReservations">My Trips</a>
+                    <a class="dropdown-item py-2" asp-controller="Reservations" asp-action="MyReservations">
+                        <i class="fa-solid fa-tent me-2 text-muted"></i> Customer Dashboard
+                    </a>
                 </li>
+                
+                @* Admin view link *@
+                <li>
+                    <a class="dropdown-item py-2" asp-controller="Reports" asp-action="Index">
+                        <i class="fa-solid fa-lock me-2 text-muted"></i> Admin Portal
+                    </a>
+                </li>
+                
                 <li><hr class="dropdown-divider"></li>
                 <li>
                     <form asp-controller="Account" asp-action="Logout" method="post">
@@ -19,15 +31,6 @@
                     </form>
                 </li>
             </ul>
-        </li>
-    }
-    else
-    {
-        <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
         </li>
     }
 </ul>
