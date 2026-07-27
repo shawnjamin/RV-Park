@@ -1,4 +1,30 @@
-﻿<!DOCTYPE html>
+﻿@functions {
+    @* Overload for 1 parameter (Controller only) *@
+    public string IsActive(string controller)
+    {
+        return IsActive(controller, null);
+    }
+
+    @* Overload for 2 parameters (Controller and Action) *@
+    public string IsActive(string controller, string? action)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+        bool isControllerMatch = string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
+
+        if (string.IsNullOrEmpty(action))
+        {
+            return isControllerMatch ? "active" : "";
+        }
+
+        bool isActionMatch = string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
+        return (isControllerMatch && isActionMatch) ? "active" : "";
+    }
+}
+
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -17,18 +43,11 @@
                 <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
                     <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
                         <h3>Admin Portal</h3>
-                        @{
-                            // Helper to determine if link is active
-                            string IsActive(string controller)
-                            {
-                                return ViewContext.RouteData.Values["controller"]?.ToString() == controller ? "active" : "";
-                            }
-                        }
 
                         <ul class="nav nav-pills flex-column mb-auto" style="list-style: none; padding-left: 0;">
                             
                             <li class="nav-item">
-                                <a asp-controller="Home" asp-action="Index" class="nav-link sidebar-link @IsActive("Home")">
+                                <a asp-controller="Dashboard" asp-action="Index" class="nav-link sidebar-link @IsActive("Dashboard", "Index")">
                                     <i class="fs-4 bi-house me-2"></i> <span class="d-none d-sm-inline">Dashboard</span>
                                 </a>
                             </li>
@@ -38,22 +57,22 @@
                             </li>
                             
                             <li>
-                                <a asp-controller="RvSites" asp-action="Index" class="nav-link sidebar-link @IsActive("RvSites")">
+                                <a asp-controller="RvSites" asp-action="Index" class="nav-link sidebar-link @IsActive("RvSites", "Index")">
                                     <i class="fs-4 bi-geo-alt me-2"></i> <span class="d-none d-sm-inline">Manage Sites</span>
                                 </a>
                             </li>
                             <li>
-                                <a asp-controller="Pricing" asp-action="Index" class="nav-link sidebar-link @IsActive("Pricing")">
+                                <a asp-controller="Pricing" asp-action="Index" class="nav-link sidebar-link @IsActive("Pricing", "Index")">
                                     <i class="fs-4 bi-tags me-2"></i> <span class="d-none d-sm-inline">Maintain Pricing</span>
                                 </a>
                             </li>
                             <li>
-                                <a asp-controller="Fees" asp-action="Index" class="nav-link sidebar-link @IsActive("Fees")">
+                                <a asp-controller="Fees" asp-action="Index" class="nav-link sidebar-link @IsActive("Fees", "Index")">
                                     <i class="fs-4 bi-cash-coin me-2"></i> <span class="d-none d-sm-inline">Manage Fees</span>
                                 </a>
                             </li>
                             <li>
-                                <a asp-controller="Employees" asp-action="Index" class="nav-link sidebar-link @IsActive("Employees")">
+                                <a asp-controller="Employees" asp-action="Index" class="nav-link sidebar-link @IsActive("Employees", "Index")">
                                     <i class="fs-4 bi-people me-2"></i>
                                     <span class="d-none d-sm-inline">Employee Accounts</span>
                                 </a>
@@ -63,19 +82,22 @@
                                 <span class="text-secondary small fw-bold text-uppercase px-2" style="font-size: 0.75rem;">Bookings</span>
                             </li>
 
+                            @* Manage Reservations Link *@
                             <li>
-                                <a asp-controller="Reservations" asp-action="Index" class="nav-link sidebar-link @IsActive("Reservations")">
+                                <a asp-controller="Reservations" asp-action="Index" class="nav-link sidebar-link @IsActive("Reservations", "Index")">
                                     <i class="fs-4 bi-calendar-check me-2"></i> <span class="d-none d-sm-inline">Manage Reservations</span>
                                 </a>
                             </li>
-                            @* Employee walk-in booking link *@
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Reservations" asp-action="EmployeeCreate">
-                                    <i class="fa-solid fa-person-walking-luggage me-2"></i> Walk-In Booking
+
+                            @* Employee Walk-In Booking Link *@
+                            <li>
+                                <a asp-controller="Reservations" asp-action="EmployeeCreate" class="nav-link sidebar-link @IsActive("Reservations", "EmployeeCreate")">
+                                    <i class="fs-4 bi-person-walking-luggage me-2"></i> <span class="d-none d-sm-inline">Walk-In Booking</span>
                                 </a>
                             </li>
+                        
                             <li>
-                                <a asp-controller="Reports" asp-action="Index" class="nav-link sidebar-link @IsActive("Reports")">
+                                <a asp-controller="Reports" asp-action="Index" class="nav-link sidebar-link @IsActive("Reports", "Index")">
                                     <i class="fs-4 bi-file-earmark-bar-graph me-2"></i> <span class="d-none d-sm-inline">Reports</span>
                                 </a>
                             </li>
@@ -118,3 +140,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

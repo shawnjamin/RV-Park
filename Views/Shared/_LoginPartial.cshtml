@@ -1,36 +1,60 @@
 @* Authentication navigation state *@
 <ul class="navbar-nav">
     
-    @* Bypass: Forced true for UI testing *@
+    @* Temporary testing bypass *@
     @if (true) 
     {
         <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-dark fw-bold" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-circle-user me-1"></i> Testing Bypass
+            <a class="nav-link dropdown-toggle text-primary fw-bold" href="#" id="roleBypassDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-user-gear me-1"></i> Testing Role Switcher
             </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="accountDropdown">
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="roleBypassDropdown">
+                
+                @* Role header *@
+                <li><h6 class="dropdown-header text-uppercase">Switch Role View</h6></li>
                 
                 @* Customer view link *@
                 <li>
                     <a class="dropdown-item py-2" asp-controller="Reservations" asp-action="MyReservations">
-                        <i class="fa-solid fa-tent me-2 text-muted"></i> Customer Dashboard
+                        <i class="fa-solid fa-user me-2 text-muted"></i> Customer: My Trips
                     </a>
                 </li>
                 
-                @* Admin view link *@
+                @* Employee view link *@
+                <li>
+                    <a class="dropdown-item py-2" asp-controller="Reservations" asp-action="EmployeeCreate">
+                        <i class="fa-solid fa-clipboard-user me-2 text-muted"></i> Employee: Walk-In Booking
+                    </a>
+                </li>
+                
+                @* Administrator view link *@
                 <li>
                     <a class="dropdown-item py-2" asp-controller="Reports" asp-action="Index">
-                        <i class="fa-solid fa-lock me-2 text-muted"></i> Admin Portal
+                        <i class="fa-solid fa-shield-halved me-2 text-muted"></i> Admin: Reports & Oversight
                     </a>
                 </li>
                 
                 <li><hr class="dropdown-divider"></li>
+                
+                @* Logout submit form *@
                 <li>
                     <form asp-controller="Account" asp-action="Logout" method="post">
-                        <button type="submit" class="dropdown-item py-2 text-danger">Logout</button>
+                        <button type="submit" class="dropdown-item py-2 text-danger">
+                            <i class="fa-solid fa-right-from-bracket me-2"></i> Reset / Logout
+                        </button>
                     </form>
                 </li>
             </ul>
+        </li>
+    }
+    else
+    {
+        @* Logged out guest links *@
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
         </li>
     }
 </ul>
