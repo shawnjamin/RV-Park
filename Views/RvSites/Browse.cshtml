@@ -45,16 +45,14 @@
                         <p class="text-muted small mb-3">@site.SiteType?.Name</p>
                         
                         <ul class="list-unstyled small mb-3">
-                            @* TODO: Replace "30" with @site.MaxRvLength once Joey adds it to the DB model *@
-                            <li class="mb-1"><i class="fa-solid fa-ruler-horizontal text-secondary me-2"></i>Max RV Length: 30 ft</li>
+                            <li class="mb-1"><i class="fa-solid fa-ruler-combined text-secondary me-2"></i>Size: @site.SizeSqft sq ft</li>
                             <li class="mb-1"><i class="fa-solid fa-plug text-secondary me-2"></i>Hookups: @site.HookupType</li>
                         </ul>
                     </div>
-
+                    
                     <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center p-3">
                         <div>
-                            @* TODO: Replace "45.00" with your actual pricing logic once the backend builds it *@
-                            <span class="fs-5 fw-bold text-primary">$45.00</span><span class="small text-muted">/night</span>
+                            <span class="fs-5 fw-bold text-primary">$@site.SiteType?.Price</span><span class="small text-muted">/night</span>
                         </div>
                         <a asp-controller="Reservations" asp-action="Create" asp-route-siteId="@site.Id" asp-route-checkIn="@Context.Request.Query["checkIn"]" asp-route-checkOut="@Context.Request.Query["checkOut"]" class="btn btn-primary">Book Now</a>
                     </div>
@@ -69,7 +67,7 @@
         <div class="col-12 text-center py-5">
             <i class="fa-regular fa-face-frown fs-1 text-muted mb-3"></i>
             <h3>No sites available</h3>
-            <p class="text-muted">We couldn't find any sites matching your dates or RV length. Please try adjusting your search criteria.</p>
+            <p class="text-muted">We couldn't find any sites matching your dates. Please try adjusting your search criteria.</p>
         </div>
     }
 </div>
