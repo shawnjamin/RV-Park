@@ -1,0 +1,85 @@
+@model RVPark.Models.Reservation
+
+@{
+    ViewData["Title"] = "Modify Reservation";
+    Layout = "_Layout";
+}
+
+@* Page header *@
+<div class="py-4 text-center">
+    <h2 class="fw-bold">Modify Your Trip</h2>
+    <p class="lead text-muted">Reservation #@Model?.ReservationNumber</p>
+</div>
+
+@* Main layout row *@
+<div class="row justify-content-center mb-5">
+    <div class="col-md-8 col-lg-6">
+        
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-body p-4 p-md-5">
+                
+                @* Current details alert *@
+                <div class="alert alert-secondary border-0 mb-4">
+                    <h6 class="alert-heading fw-bold mb-2">Current Itinerary</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="d-block text-muted">Check-In</small>
+                            <strong>@Model?.StartDate.ToString("MM/dd/yyyy")</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="d-block text-muted">Check-Out</small>
+                            <strong>@Model?.EndDate.ToString("MM/dd/yyyy")</strong>
+                        </div>
+                    </div>
+                </div>
+
+                @* Modification form *@
+                <form asp-action="EditMyTrip" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <h5 class="fw-bold mb-3">Update Dates</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <label class="form-label fw-bold">New Check-In</label>
+                            <input type="date" asp-for="StartDate" class="form-control" required />
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-bold">New Check-Out</label>
+                            <input type="date" asp-for="EndDate" class="form-control" required />
+                        </div>
+                    </div>
+                    
+                    <h5 class="fw-bold mb-3">Update Guest Count</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-4">
+                            <label class="form-label fw-bold">Adults</label>
+                            <input type="number" name="Adults" class="form-control" value="2" min="1" required />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label fw-bold">Children</label>
+                            <input type="number" name="Children" class="form-control" value="0" min="0" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label fw-bold">Pets</label>
+                            <input type="number" name="Pets" class="form-control" value="0" min="0" />
+                        </div>
+                    </div>
+
+                    @* Pricing recalculation notice *@
+                    <div class="alert alert-warning border-warning d-flex align-items-center mb-4">
+                        <i class="fa-solid fa-circle-exclamation fs-4 me-3 text-warning"></i>
+                        <small>Changing dates or guest counts will trigger a fresh availability check and may recalculate your total cost based on current rates.</small>
+                    </div>
+
+                    @* Form actions *@
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <a asp-action="MyReservations" class="text-decoration-none text-muted">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Check Availability & Update</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
