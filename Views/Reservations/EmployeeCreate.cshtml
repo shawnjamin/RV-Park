@@ -69,11 +69,11 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Check-In Date</label>
-                            <input type="date" asp-for="StartDate" class="form-control" required />
+                            <input type="date" asp-for="StartDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Check-Out Date</label>
-                            <input type="date" asp-for="EndDate" class="form-control" required />
+                            <input type="date" asp-for="EndDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Assign Site</label>

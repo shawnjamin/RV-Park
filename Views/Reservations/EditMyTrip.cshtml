@@ -41,11 +41,11 @@
                     <div class="row g-3 mb-4">
                         <div class="col-sm-6">
                             <label class="form-label fw-bold">New Check-In</label>
-                            <input type="date" asp-for="StartDate" class="form-control" required />
+                            <input type="date" asp-for="StartDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-bold">New Check-Out</label>
-                            <input type="date" asp-for="EndDate" class="form-control" required />
+                            <input type="date" asp-for="EndDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                         </div>
                     </div>
                     

@@ -20,12 +20,12 @@
                     
                     <div class="col-md-3">
                         <label class="form-label fw-bold">Check-In</label>
-                        <input type="date" name="checkIn" class="form-control" required />
+                        <input type="date" name="checkIn" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                     </div>
                     
                     <div class="col-md-3">
                         <label class="form-label fw-bold">Check-Out</label>
-                        <input type="date" name="checkOut" class="form-control" required />
+                        <input type="date" name="checkOut" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                     </div>
                     
                     <div class="col-md-3">
@@ -105,7 +105,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            @* Modal Body (Update this text with your teacher's exact scenario!) *@
+            @* Modal Body *@
             <div class="modal-body p-4">
                 <h5 class="fw-bold">General Park Rules</h5>
                 <ul>
