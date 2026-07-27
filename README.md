@@ -115,3 +115,16 @@ first with:
 ```bash
 dotnet ef database update
 ```
+
+#### Seeded logins
+
+Development use only.
+
+| Account type | Email | Password |
+| --- | --- | --- |
+| Customer | `customer.alex@example.test` | `RVParkSeed123!` |
+| Customer | `customer.jordan@example.test` | `RVParkSeed123!` |
+| Customer | `customer.taylor@example.test` | `RVParkSeed123!` |
+| Admin | `admin.avery@example.test` | `RVParkSeed123!` |
+| Manager | `manager.casey@example.test` | `RVParkSeed123!` |
+| Staff | `staff.riley@example.test` | `RVParkSeed123!` |

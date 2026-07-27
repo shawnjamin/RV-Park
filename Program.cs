@@ -17,7 +17,10 @@ EnsureSqliteDirectoryExists(connectionString);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Registers PasswordHasher which can be accessed through Dependency Injection
 builder.Services.AddScoped<IPasswordHasher<User>, UserPasswordHasher>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
