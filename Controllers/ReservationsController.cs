@@ -127,6 +127,27 @@ namespace RVPark.Controllers
             return _context.Reservations.Any(e => e.Id == id);
         }
 
+        // Placeholder for Employee Walk-in View
+        [HttpGet]
+        public IActionResult EmployeeCreate()
+        {
+            return View();
+        }
+
+        // Placeholder for Public Customer Edit View
+        [HttpGet]
+        public IActionResult EditMyTrip(int id)
+        {
+            var mockReservation = new Reservation
+            {
+                Id = id,
+                ReservationNumber = "RES-9999",
+                StartDate = DateTime.Now.AddDays(10),
+                EndDate = DateTime.Now.AddDays(14)
+            };
+            return View(mockReservation);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAvailableSites(DateTime startDate, DateTime endDate, int currentReservationId)
         {
