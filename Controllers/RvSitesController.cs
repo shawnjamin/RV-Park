@@ -62,17 +62,8 @@ namespace RVPark.Controllers
                         reservation.EndDate > checkIn.Value));
             }
 
-            /* TODO
-            * The RV Length can't currently be filtered because the Site model
-            * does not contain a MaxRvLength Property.
-            *
-            * Once that field is added, we will use:
-            *if (rvLength.HasValue)
-            *{
-            *    sitesQuery = sitesQuery.Where(site =>
-            *        site.MaxRvLength >= rvLength.Value);
-            *}
-            */
+            // TODO: Apply RV-length filtering when the Site model includes
+            // a dedicated maximum RV-length property.
 
             var availableSites = await sitesQuery
                 .OrderBy(site => site.SiteNumber)
