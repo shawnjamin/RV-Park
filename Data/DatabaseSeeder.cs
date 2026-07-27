@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Models;
 
@@ -6,10 +7,12 @@ namespace RVPark.Data;
 public static class DatabaseSeeder
 {
     private const string PlaceholderPasswordHash = "TEST-ONLY-NOT-A-REAL-PASSWORD-HASH";
+    private const string SeedPassword = "RVParkSeed123!";
 
     public static async Task SeedAsync(
         ApplicationDbContext context,
         ILogger logger,
+        IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken = default)
     {
         await EnsureNoPendingMigrationsAsync(context, cancellationToken);
@@ -18,8 +21,9 @@ public static class DatabaseSeeder
 
         var siteTypes = await SeedSiteTypesAsync(context, cancellationToken);
         var sites = await SeedSitesAsync(context, siteTypes, cancellationToken);
-        var customers = await SeedCustomersAsync(context, cancellationToken);
-        await SeedEmployeesAsync(context, cancellationToken);
+        await SeedSitePhotosAsync(context, sites, cancellationToken);
+        var customers = await SeedCustomersAsync(context, passwordHasher, cancellationToken);
+        await SeedEmployeesAsync(context, passwordHasher, cancellationToken);
         var reservations = await SeedReservationsAsync(context, customers, sites, cancellationToken);
         var bills = await SeedBillsAsync(context, reservations, cancellationToken);
         await SeedPaymentsAsync(context, bills, cancellationToken);
@@ -171,8 +175,43 @@ public static class DatabaseSeeder
             .ToDictionaryAsync(site => site.SiteNumber, cancellationToken);
     }
 
+    private static async Task SeedSitePhotosAsync(
+        ApplicationDbContext context,
+        IReadOnlyDictionary<string, Site> sites,
+        CancellationToken cancellationToken)
+    {
+        var seedSitePhotos = new[]
+        {
+            new SitePhoto
+            {
+                SiteId = sites["A01"].Id,
+                Url = "/images/sites/60e78691-2bdc-4cf4-ac83-895af3b25999_camping-in-rv.jpg",
+                Caption = "RV campsite surrounded by trees."
+            },
+            new SitePhoto
+            {
+                SiteId = sites["C01"].Id,
+                Url = "/images/sites/ceb52507-b7e1-4757-b01e-7c6f24b25b8a_rv-camping-under-tree.jpg",
+                Caption = "Shaded campsite beneath a large tree."
+            }
+        };
+
+        foreach (var seedSitePhoto in seedSitePhotos)
+        {
+            if (!await context.SitePhotos.AnyAsync(
+                photo => photo.SiteId == seedSitePhoto.SiteId && photo.Url == seedSitePhoto.Url,
+                cancellationToken))
+            {
+                context.SitePhotos.Add(seedSitePhoto);
+            }
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
     private static async Task<Dictionary<string, Customer>> SeedCustomersAsync(
         ApplicationDbContext context,
+        IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken)
     {
         var seedCustomers = new[]
@@ -184,7 +223,7 @@ public static class DatabaseSeeder
 
         foreach (var seedCustomer in seedCustomers)
         {
-            var user = await EnsureUserAsync(context, seedCustomer.Email, cancellationToken);
+            var user = await EnsureUserAsync(context, seedCustomer.Email, passwordHasher, cancellationToken);
 
             if (!await context.Customers.AnyAsync(customer => customer.Id == user.Id, cancellationToken))
             {
@@ -211,6 +250,7 @@ public static class DatabaseSeeder
 
     private static async Task SeedEmployeesAsync(
         ApplicationDbContext context,
+        IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken)
     {
         var seedEmployees = new[]
@@ -222,7 +262,7 @@ public static class DatabaseSeeder
 
         foreach (var seedEmployee in seedEmployees)
         {
-            var user = await EnsureUserAsync(context, seedEmployee.Email, cancellationToken);
+            var user = await EnsureUserAsync(context, seedEmployee.Email, passwordHasher, cancellationToken);
 
             if (!await context.Employees.AnyAsync(employee => employee.Id == user.Id, cancellationToken))
             {
@@ -322,6 +362,111 @@ public static class DatabaseSeeder
                 Status = ReservationStatus.Cancelled,
                 CreatedAt = new DateTime(2026, 7, 4, 16, 0, 0),
                 CancelledAt = new DateTime(2026, 7, 6, 8, 45, 0)
+            },
+            new Reservation
+            {
+                ReservationNumber = "SEED-RES-1006",
+                CustomerId = customers["customer.taylor@example.test"].Id,
+                SiteId = sites["A01"].Id,
+                SpecialRequestsOrNotes = "Seed confirmed family reservation.",
+                AdultCount = 2,
+                ChildCount = 1,
+                PetCount = 0,
+                StartDate = new DateTime(2026, 8, 12, 15, 0, 0),
+                EndDate = new DateTime(2026, 8, 16, 11, 0, 0),
+                Status = ReservationStatus.Confirmed,
+                CreatedAt = new DateTime(2026, 7, 10, 10, 30, 0)
+            },
+            new Reservation
+            {
+                ReservationNumber = "SEED-RES-1007",
+                CustomerId = customers["customer.alex@example.test"].Id,
+                SiteId = sites["B01"].Id,
+                SpecialRequestsOrNotes = "Seed pending reservation with a pet.",
+                AdultCount = 1,
+                ChildCount = 0,
+                PetCount = 1,
+                PetNotes = "One leashed dog.",
+                StartDate = new DateTime(2026, 8, 20, 15, 0, 0),
+                EndDate = new DateTime(2026, 8, 23, 11, 0, 0),
+                Status = ReservationStatus.PendingPayment,
+                CreatedAt = new DateTime(2026, 7, 18, 13, 15, 0)
+            },
+            new Reservation
+            {
+                ReservationNumber = "SEED-RES-1008",
+                CustomerId = customers["customer.jordan@example.test"].Id,
+                SiteId = sites["C01"].Id,
+                SpecialRequestsOrNotes = "Seed completed tent reservation.",
+                AdultCount = 2,
+                ChildCount = 0,
+                PetCount = 0,
+                StartDate = new DateTime(2026, 5, 10, 15, 0, 0),
+                EndDate = new DateTime(2026, 5, 12, 11, 0, 0),
+                Status = ReservationStatus.Completed,
+                CreatedAt = new DateTime(2026, 4, 20, 9, 0, 0),
+                CheckedInAt = new DateTime(2026, 5, 10, 15, 10, 0),
+                CheckedOutAt = new DateTime(2026, 5, 12, 10, 30, 0)
+            },
+            new Reservation
+            {
+                ReservationNumber = "SEED-RES-1009",
+                CustomerId = customers["customer.taylor@example.test"].Id,
+                SiteId = sites["A02"].Id,
+                SpecialRequestsOrNotes = "Seed cancelled family reservation.",
+                AdultCount = 2,
+                ChildCount = 2,
+                PetCount = 0,
+                StartDate = new DateTime(2026, 8, 20, 15, 0, 0),
+                EndDate = new DateTime(2026, 8, 22, 11, 0, 0),
+                Status = ReservationStatus.Cancelled,
+                CreatedAt = new DateTime(2026, 7, 12, 11, 45, 0),
+                CancelledAt = new DateTime(2026, 7, 20, 14, 20, 0)
+            },
+            new Reservation
+            {
+                ReservationNumber = "SEED-RES-1010",
+                CustomerId = customers["customer.alex@example.test"].Id,
+                SiteId = sites["C01"].Id,
+                SpecialRequestsOrNotes = "Seed confirmed fall reservation.",
+                AdultCount = 2,
+                ChildCount = 0,
+                PetCount = 0,
+                StartDate = new DateTime(2026, 9, 12, 15, 0, 0),
+                EndDate = new DateTime(2026, 9, 15, 11, 0, 0),
+                Status = ReservationStatus.Confirmed,
+                CreatedAt = new DateTime(2026, 7, 22, 8, 30, 0)
+            },
+            new Reservation
+            {
+                ReservationNumber = "SEED-RES-1011",
+                CustomerId = customers["customer.jordan@example.test"].Id,
+                SiteId = sites["A01"].Id,
+                SpecialRequestsOrNotes = "Seed completed early-summer reservation.",
+                AdultCount = 2,
+                ChildCount = 1,
+                PetCount = 1,
+                PetNotes = "One cat in the RV.",
+                StartDate = new DateTime(2026, 6, 1, 15, 0, 0),
+                EndDate = new DateTime(2026, 6, 4, 11, 0, 0),
+                Status = ReservationStatus.Completed,
+                CreatedAt = new DateTime(2026, 5, 12, 15, 40, 0),
+                CheckedInAt = new DateTime(2026, 6, 1, 15, 0, 0),
+                CheckedOutAt = new DateTime(2026, 6, 4, 10, 50, 0)
+            },
+            new Reservation
+            {
+                ReservationNumber = "SEED-RES-1012",
+                CustomerId = customers["customer.taylor@example.test"].Id,
+                SiteId = sites["A02"].Id,
+                SpecialRequestsOrNotes = "Seed pending autumn reservation.",
+                AdultCount = 1,
+                ChildCount = 0,
+                PetCount = 0,
+                StartDate = new DateTime(2026, 10, 1, 15, 0, 0),
+                EndDate = new DateTime(2026, 10, 5, 11, 0, 0),
+                Status = ReservationStatus.PendingPayment,
+                CreatedAt = new DateTime(2026, 7, 24, 17, 10, 0)
             }
         };
 
@@ -428,21 +573,29 @@ public static class DatabaseSeeder
     private static async Task<User> EnsureUserAsync(
         ApplicationDbContext context,
         string email,
+        IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken)
     {
         var existingUser = await context.Users.FirstOrDefaultAsync(user => user.Email == email, cancellationToken);
 
         if (existingUser is not null)
         {
+            if (existingUser.PasswordHash == PlaceholderPasswordHash)
+            {
+                existingUser.PasswordHash = passwordHasher.HashPassword(existingUser, SeedPassword);
+                await context.SaveChangesAsync(cancellationToken);
+            }
+
             return existingUser;
         }
 
         var user = new User
         {
             Email = email,
-            PasswordHash = PlaceholderPasswordHash,
             CreatedAt = new DateTime(2026, 7, 1, 12, 0, 0)
         };
+
+        user.PasswordHash = passwordHasher.HashPassword(user, SeedPassword);
 
         context.Users.Add(user);
         await context.SaveChangesAsync(cancellationToken);
