@@ -1,38 +1,55 @@
+@using System.Security.Claims
+
 @* Authentication navigation state *@
 <ul class="navbar-nav">
     
-    @* Temporary testing bypass *@
-    @if (true) 
+    @* Check if the user is authenticated via cookie *@
+    @if (User.Identity?.IsAuthenticated == true) 
     {
         <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-primary fw-bold" href="#" id="roleBypassDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-user-gear me-1"></i> Testing Role Switcher
+            <a class="nav-link dropdown-toggle text-primary fw-bold" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-circle-user me-1"></i> 
+                @* Displays user's name from claims or falls back to Account *@
+                @(User.FindFirst(ClaimTypes.Name)?.Value ?? User.Identity.Name ?? "My Account")
             </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="roleBypassDropdown">
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="accountDropdown">
                 
-                @* Role header *@
-                <li><h6 class="dropdown-header text-uppercase">Switch Role View</h6></li>
+                <li><h6 class="dropdown-header text-uppercase">Account Menu</h6></li>
                 
-                @* Customer view link *@
-                <li>
-                    <a class="dropdown-item py-2" asp-controller="Reservations" asp-action="MyReservations">
-                        <i class="fa-solid fa-user me-2 text-muted"></i> Customer: My Trips
-                    </a>
-                </li>
-                
-                @* Employee view link *@
-                <li>
-                    <a class="dropdown-item py-2" asp-controller="Reservations" asp-action="EmployeeCreate">
-                        <i class="fa-solid fa-clipboard-user me-2 text-muted"></i> Employee: Walk-In Booking
-                    </a>
-                </li>
-                
-                @* Administrator view link *@
-                <li>
-                    <a class="dropdown-item py-2" asp-controller="Reports" asp-action="Index">
-                        <i class="fa-solid fa-shield-halved me-2 text-muted"></i> Admin: Reports & Oversight
-                    </a>
-                </li>
+                @* Customer role links *@
+                @if (User.IsInRole("Customer") || !User.IsInRole("Employee") && !User.IsInRole("Admin") && !User.IsInRole("Manager"))
+                {
+                    <li>
+                        <a class="dropdown-item py-2" asp-controller="Reservations" asp-action="MyReservations">
+                            <i class="fa-solid fa-suitcase me-2 text-muted"></i> My Trips
+                        </a>
+                    </li>
+                }
+
+                @* Employee / Camp Host role links *@
+                @if (User.IsInRole("Employee") || User.IsInRole("Admin") || User.IsInRole("Manager"))
+                {
+                    <li>
+                        <a class="dropdown-item py-2" asp-controller="Reservations" asp-action="EmployeeCreate">
+                            <i class="fa-solid fa-clipboard-user me-2 text-muted"></i> Walk-In Booking
+                        </a>
+                    </li>
+                }
+
+                @* Administrator / Manager role links *@
+                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                {
+                    <li>
+                        <a class="dropdown-item py-2" asp-controller="Dashboard" asp-action="Index">
+                            <i class="fa-solid fa-chart-line me-2 text-muted"></i> Admin Portal
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" asp-controller="Reports" asp-action="Index">
+                            <i class="fa-solid fa-file-invoice-dollar me-2 text-muted"></i> Park Reports
+                        </a>
+                    </li>
+                }
                 
                 <li><hr class="dropdown-divider"></li>
                 
@@ -40,7 +57,7 @@
                 <li>
                     <form asp-controller="Account" asp-action="Logout" method="post">
                         <button type="submit" class="dropdown-item py-2 text-danger">
-                            <i class="fa-solid fa-right-from-bracket me-2"></i> Reset / Logout
+                            <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
                         </button>
                     </form>
                 </li>
