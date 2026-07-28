@@ -1,8 +1,10 @@
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
 using RVPark.Models;
+using RVPark.Services;
 using SQLitePCL;
 
 namespace RVPark.Controllers
@@ -18,25 +20,39 @@ namespace RVPark.Controllers
 
         // Login POST bypass
         [HttpPost]
-        public IActionResult Login(User user)
+        public IActionResult Login(string email, string password, [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
         {
-            // Check for valid username and password
-            // Customer redirect
-            if (user.AccessLevel is AccessLevel.Customer)
+            // ViewData["UserFound"] can be used in the HTML with Razor to display an error or success message
+            User foundUser = null;
+            // Only set foundUser if the email is actually found
+            // This has to be done in an if statement so we can check for null next
+            if (context.Users.Any(u => u.Email == email))
             {
-                return RedirectToAction("MyReservations", "Reservations");
+                foundUser = context.Users.First(u =>
+                    u.Email == email && u.PasswordHash == hasher.HashPassword(u, password));
             }
-            // Manager & Admin redirect
-            if (user.AccessLevel is AccessLevel.Admin or AccessLevel.Manager)
+            // User found
+            if (foundUser != null)
             {
-                return RedirectToAction("Index", "Dashboard");
+                ViewData["UserFound"] = true;
+                // Customer redirect
+                if (foundUser.AccessLevel is AccessLevel.Customer)
+                {
+                    return RedirectToAction("MyReservations", "Reservations");
+                }
+                // Manager & Admin redirect
+                if (foundUser.AccessLevel is AccessLevel.Admin or AccessLevel.Manager)
+                {
+                    return RedirectToAction("Index", "Dashboard");
+                }
+                // Staff Redirect
+                else if (foundUser.AccessLevel is AccessLevel.Employee)
+                {
+                    return RedirectToAction("Index", "Employees");
+                }
             }
-            // Staff Redirect
-            else if (user.AccessLevel is AccessLevel.Employee)
-            {
-                return RedirectToAction("Create", "Employees");
-            }
-
+            // No user found
+            ViewData["UserFound"] = false;
             return View();
         }
 
@@ -44,30 +60,40 @@ namespace RVPark.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            return View();
+            return View(new User());
         }
 
         // Register POST bypass
         [HttpPost]
-        public IActionResult Register(User user, ApplicationDbContext context)
+        public IActionResult RegisterSubmit(User userFromForm, string password, string confirmPassword, [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
         {
-            // Check for duplicate Email
-            if (context.Users.Any(u => u.Email != user.Email))
+            // Check for match between passwords
+            // ViewData["PasswordMatch"] can be used in the HTML with Razor to display an error
+            if (password != confirmPassword)
             {
-                // No duplicate email
-                // Add user to database and redirect if there are no issues
-                context.Add(user);
-                context.SaveChanges();
-                ViewData["DataException"] = false;
-                // Default role is Customer, so a new user will always be redirected to reservations
-                return RedirectToAction("MyReservations", "Reservations");
+                ViewData["PasswordMatch"] = false;
+                ViewData["Error Message"] = "Passwords do not match";
+                return View();
             }
-            // Don't redirect if email already exists
-            // ViewData["DataException"] can be used in the HTML with Razor to display an error or redirect
-            // ErrorMessage is also set and can be used if desired
-            ViewData["DataException"] = true;
-            ViewData["ErrorMessage"] = "Email already exists";
-            return View();
+            ViewData["PasswordMatch"] = true;
+            // Have to hash password before adding to DB
+            userFromForm.PasswordHash = hasher.HashPassword(userFromForm, password);
+            // Check for duplicate Email
+            if (context.Users.Any(u => u.Email == userFromForm.Email))
+            {
+                // Don't redirect if email already exists
+                // ViewData["EmailAlreadyExists"] can be used in the HTML with Razor to display an error
+                // ErrorMessage is also set and can be used if desired
+                ViewData["EmailAlreadyExists"] = true;
+                ViewData["ErrorMessage"] = "Email already exists";
+                return View();
+            }
+            // Add user to database and redirect if there are no issues
+            context.Add(userFromForm);
+            context.SaveChanges();
+            ViewData["EmailAlreadyExists"] = false;
+            // Default role is Customer, so a new user will always be redirected to reservations
+            return RedirectToAction("MyReservations", "Reservations");
         }
 
         // Logout POST bypass

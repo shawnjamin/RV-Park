@@ -31,7 +31,7 @@ public class User
     [MaxLength(100)]
     [Display(Name = "Last Name")]
     public string LastName { get; set; }
-    
+
     [Required]
     public string PasswordHash { get; set; }
 
