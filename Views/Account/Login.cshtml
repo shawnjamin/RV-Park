@@ -15,7 +15,7 @@
 
             @* Form body *@
             <div class="card-body p-4">
-                <form asp-controller="Account" asp-action="Login" method="post">
+                <form asp-controller="Account" asp-action="LoginSubmit" method="post">
                     
                     @* Validation summary *@
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
@@ -38,12 +38,19 @@
                         <label class="form-check-label" for="rememberMeCheck">
                             Remember me
                         </label>
+                        <input name="rememberMe" type="hidden" value="false"/> @* Checkboxes don't submit a value when unchecked, so this ensures a false is still submitted if it's unchecked *@
                     </div>
 
                     @* Submit button *@
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">Log In</button>
                     </div>
+                    
+                    @if (ViewData["UserFoundAndPassSuccess"] is false)
+                    {
+                        <!-- TODO: Add an error here indicating that either the user doesn't exist or the password for the user is wrong. Use ["ErrorMessage"] if you would like -->
+                        <!-- We don't want to tell the user if the username exists or not, that's unsafe practice (not that it really matters for this assignment but whatever lol) -->
+                    }
                     
                 </form>
             </div>

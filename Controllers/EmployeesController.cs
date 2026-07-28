@@ -11,11 +11,11 @@ public class EmployeesController(ApplicationDbContext context) : Controller
     // Shows all employee accounts
     public async Task<IActionResult> Index()
     {
-        var employees = await context.Employees
+        var employees = await context.Users
             .AsNoTracking()
-            .Include(employee => employee.User) // Include User so we the employee email can be displayed.
-            .OrderBy(employee => employee.FirstName)
-            .ThenBy(employee => employee.FirstName)
+            .Where( user => user.AccessLevel != AccessLevel.Customer) // Filter by access level where the access level IS NOT equal to the customer's access level
+            .OrderBy(user => user.FirstName)
+            .ThenBy(user => user.LastName)
             .ToListAsync();
 
             return View(employees);
@@ -29,10 +29,11 @@ public class EmployeesController(ApplicationDbContext context) : Controller
             return NotFound();
         }
 
-        var employee = await context.Employees
+        var employee = await context.Users
             .AsNoTracking()
-            .Include(employee => employee.User)
-            .FirstOrDefaultAsync(employee => employee.Id == id);
+            .FirstOrDefaultAsync( user =>
+                user.Id == id &&
+                user.AccessLevel != AccessLevel.Customer);
 
         if (employee is null)
         {
@@ -46,30 +47,30 @@ public class EmployeesController(ApplicationDbContext context) : Controller
     public IActionResult Create()
     {
         PopulateAccessLevels();
-        return View(new EmployeeAccountFormViewModel());
+        return View(new User());
     }
 
     // Handles the submitted create employee form.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(EmployeeAccountFormViewModel viewModel)
+    public async Task<IActionResult> Create(User userModel)
     {
         // If the email already exists, don't allow it, throw an error.
-        if (await context.Users.AnyAsync(user => user.Email == viewModel.Email))
+        if (await context.Users.AnyAsync(user => user.Email == userModel.Email))
         {
-            ModelState.AddModelError(nameof(viewModel.Email), "An account with this email already exists.");
+            ModelState.AddModelError(nameof(userModel.Email), "An account with this email already exists.");
         }
 
         if(!ModelState.IsValid)
         {
-            PopulateAccessLevels(viewModel.AccessLevel);
-            return View(viewModel);
+            PopulateAccessLevels(userModel.AccessLevel);
+            return View(userModel);
         }
 
         // Create the User account first because Employee uses the same Id.
         var user = new User
         {
-            Email = viewModel.Email,
+            Email = userModel.Email,
             PasswordHash = $"TEMP-{Guid.NewGuid():N}", // Temporary placeholder password for prototype
             CreatedAt = DateTime.UtcNow
         };
@@ -78,16 +79,16 @@ public class EmployeesController(ApplicationDbContext context) : Controller
         await context.SaveChangesAsync();
 
         // Create the Employee record connected to the User record.
-        var employee = new Employee
+        var employee = new User
         {
             Id = user.Id,
-            FirstName = viewModel.FirstName,
-            LastName = viewModel.LastName,
-            AccessLevel = viewModel.AccessLevel,
-            IsLocked = viewModel.IsLocked
+            FirstName = userModel.FirstName,
+            LastName = userModel.LastName,
+            AccessLevel = userModel.AccessLevel,
+            IsLocked = userModel.IsLocked
         };
 
-        context.Employees.Add(employee);
+        context.Users.Add(employee);
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Index));
@@ -101,58 +102,61 @@ public class EmployeesController(ApplicationDbContext context) : Controller
             return NotFound();
         }
 
-        var employee = await context.Employees
-            .Include(employee => employee.User)
-            .FirstOrDefaultAsync(employee => employee.Id == id);
+        var employee = await context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync( user =>
+                user.Id == id &&
+                user.AccessLevel != AccessLevel.Customer);
 
         if (employee is null)
         {
             return NotFound();
         }
 
-        // Convert Employee/User data into the ViewModel used by the form.
-        var viewModel = new EmployeeAccountFormViewModel
+        // Convert User data into the userModel used by the form.
+        var userModel = new User
         {
             Id = employee.Id,
             FirstName = employee.FirstName,
             LastName = employee.LastName,
-            Email = employee.User.Email,
+            Email = employee.Email,
             AccessLevel = employee.AccessLevel,
             IsLocked = employee.IsLocked
         };
 
         PopulateAccessLevels(employee.AccessLevel);
-        return View(viewModel);
+        return View(userModel);
     }
 
     // Handles the submittend edit employee form.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, EmployeeAccountFormViewModel viewModel)
+    public async Task<IActionResult> Edit(int id, User userModel)
     {
-        if (id != viewModel.Id)
+        if (id != userModel.Id)
         {
             return NotFound();
         }
 
         // Make sure the new email is not already used by another user.
         var emailAlreadyExists = await context.Users
-            .AnyAsync(user => user.Email == viewModel.Email && user.Id != id);
+            .AnyAsync(user => user.Email == userModel.Email && user.Id != id);
 
         if (emailAlreadyExists)
         {
-            ModelState.AddModelError(nameof(viewModel.Email), "An account with this email already exists.");
+            ModelState.AddModelError(nameof(userModel.Email), "An account with this email already exists.");
         }
 
         if (!ModelState.IsValid)
         {
-            PopulateAccessLevels(viewModel.AccessLevel);
-            return View(viewModel);
+            PopulateAccessLevels(userModel.AccessLevel);
+            return View(userModel);
         }
 
-        var employee = await context.Employees
-            .Include(employee => employee.User)
-            .FirstOrDefaultAsync(employee => employee.Id == id);
+        var employee = await context.Users
+            .FirstOrDefaultAsync( user =>
+                user.Id == id &&
+                user.AccessLevel != AccessLevel.Customer);
 
         if (employee is null)
         {
@@ -160,12 +164,12 @@ public class EmployeesController(ApplicationDbContext context) : Controller
         }
 
         // Update Employee fields.
-        employee.FirstName = viewModel.FirstName;
-        employee.LastName = viewModel.LastName;
-        employee.AccessLevel = viewModel.AccessLevel;
-        employee.IsLocked = viewModel.IsLocked;
+        employee.FirstName = userModel.FirstName;
+        employee.LastName = userModel.LastName;
+        employee.AccessLevel = userModel.AccessLevel;
+        employee.IsLocked = userModel.IsLocked;
         // Update related UserData
-        employee.User.Email = viewModel.Email;
+        employee.Email = userModel.Email;
 
         await context.SaveChangesAsync();
 
@@ -177,7 +181,10 @@ public class EmployeesController(ApplicationDbContext context) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleLock(int id)
     {
-        var employee = await context.Employees.FindAsync(id);
+        var employee = await context.Users
+            .FirstOrDefaultAsync( user =>
+                user.Id == id &&
+                user.AccessLevel != AccessLevel.Customer);
 
         if (employee is null)
         {
@@ -191,9 +198,9 @@ public class EmployeesController(ApplicationDbContext context) : Controller
     }
 
     // Builds the dropdown list for meployee access levels.
-    private void PopulateAccessLevels(EmployeeAccessLevel? selectedAccessLevel = null)
+    private void PopulateAccessLevels(AccessLevel? selectedAccessLevel = null)
     {
-        var accessLevels = Enum.GetValues<EmployeeAccessLevel>()
+        var accessLevels = Enum.GetValues<AccessLevel>()
             .Select(accessLevel => new SelectListItem
             {
                 Value = accessLevel.ToString(),

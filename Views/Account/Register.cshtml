@@ -3,6 +3,8 @@
     Layout = "_Layout";
 }
 
+@model User
+
 @* Page container *@
 <div class="row justify-content-center mt-5 mb-5">
     <div class="col-md-8 col-lg-6">
@@ -15,8 +17,7 @@
 
             @* Form body *@
             <div class="card-body p-4">
-                <form asp-controller="Account" asp-action="Register" method="post">
-                    
+                <form asp-controller="Account" asp-action="RegisterSubmit" method="post">
                     @* Validation summary *@
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -24,14 +25,14 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <div class="form-floating mb-3 mb-md-0">
-                                <input type="text" name="firstName" class="form-control" id="inputFirstName" placeholder="Enter your first name" required />
-                                <label for="inputFirstName">First name</label>
+                                <input asp-for="FirstName" type="text" class="form-control" placeholder="Enter your first name" required />
+                                <label>First name</label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="text" name="lastName" class="form-control" id="inputLastName" placeholder="Enter your last name" required />
-                                <label for="inputLastName">Last name</label>
+                                <input asp-for="LastName" type="text" class="form-control" placeholder="Enter your last name" required />
+                                <label>Last name</label>
                             </div>
                         </div>
                     </div>
@@ -40,14 +41,18 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <div class="form-floating mb-3 mb-md-0">
-                                <input type="email" name="email" class="form-control" id="inputEmail" placeholder="name@example.com" required />
-                                <label for="inputEmail">Email address</label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" required />
+                                <label>Email address</label>
                             </div>
+                            @if (ViewData["EmailAlreadyExists"] is true)
+                            {
+                                <!-- TODO: Add error message here about email already existing. ViewData["ErrorMessage"] is already set if you would like to use it -->
+                            }
                         </div>
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="tel" name="phoneNumber" class="form-control" id="inputPhone" placeholder="(555) 555-5555" required />
-                                <label for="inputPhone">Phone number</label>
+                                <input asp-for="Phone" type="tel" class="form-control" placeholder="(555) 555-5555" required />
+                                <label>Phone number</label>
                             </div>
                         </div>
                     </div>
@@ -56,18 +61,21 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="form-floating mb-3 mb-md-0">
-                                <input type="password" name="password" class="form-control" id="inputPassword" placeholder="Create a password" required />
-                                <label for="inputPassword">Password</label>
+                                <input for="Password" type="password" name="password" class="form-control" id="inputPassword" placeholder="Create a password" required />
+                                <label>Password</label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="password" name="confirmPassword" class="form-control" id="inputPasswordConfirm" placeholder="Confirm password" required />
-                                <label for="inputPasswordConfirm">Confirm Password</label>
+                                <input for="ConfirmPassword" type="password" name="confirmPassword" class="form-control" id="inputPasswordConfirm" placeholder="Confirm password" required />
+                                <label>Confirm Password</label>
                             </div>
                         </div>
+                        @if (ViewData["PasswordMatch"] is false)
+                        {
+                            <!-- TODO: Add error message here about passwords not matching. ViewData["ErrorMessage"] is already set if you would like to use it-->
+                        }
                     </div>
-
                     @* Submit button *@
                     <div class="d-grid gap-2 mt-4 mb-0">
                         <button type="submit" class="btn btn-primary btn-lg">Create Account</button>
