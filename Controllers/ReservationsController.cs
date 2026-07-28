@@ -127,11 +127,46 @@ namespace RVPark.Controllers
             return _context.Reservations.Any(e => e.Id == id);
         }
 
-        // Placeholder for Employee Walk-in View
+        // Loads the employee walk-in reservation form.
         [HttpGet]
-        public IActionResult EmployeeCreate()
+        public async Task<IActionResult> EmployeeCreate()
         {
-            return View();
+            var customers = await _context.Users
+                .AsNoTracking()
+                .Where(user => user.AccessLevel == AccessLevel.Customer)
+                .OrderBy(user => user.LastName)
+                .ThenBy(user => user.FirstName)
+                .ToListAsync();
+
+            var activeSites = await _context.Sites
+                .AsNoTracking()
+                .Where(site => site.IsActive)
+                .OrderBy(site => site.SiteNumber)
+                .ToListAsync();
+
+            ViewBag.Customers = new SelectList(
+                customers,
+                "Id",
+                "Email");
+
+            ViewBag.Sites = new SelectList(
+                activeSites,
+                "Id",
+                "SiteNumber");
+
+            ViewBag.PaymentMethods = new SelectList(
+                Enum.GetValues<PaymentMethod>()
+                    .Where(method => method != PaymentMethod.Stripe));
+
+            var viewModel = new EmployeeReservationFormViewModel
+            {
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddDays(1),
+                AdultCount = 1
+            };
+
+            return View(viewModel);
+
         }
 
         // Placeholder for Public Customer Edit View
