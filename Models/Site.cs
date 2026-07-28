@@ -15,6 +15,10 @@ public class Site
     [Display(Name = "Site Number")]
     public string SiteNumber { get; set; } = string.Empty;
 
+    [Range(1, 300)]
+    [Display(Name = "Max RV Length (ft)")]
+    public int? MaxRvLengthFt { get; set; }
+
     [Display(Name = "Hookup Type")]
     public HookupType HookupType { get; set; } = HookupType.FullHookup;
 

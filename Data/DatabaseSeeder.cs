@@ -124,6 +124,7 @@ public static class DatabaseSeeder
             {
                 SiteTypeId = siteTypes["Premium Pull-Through"].Id,
                 SiteNumber = "A01",
+                MaxRvLengthFt = 45,
                 HookupType = HookupType.FullHookup,
                 SizeSqft = 2400,
                 Notes = "Seed premium full-hookup pull-through site.",
@@ -133,6 +134,7 @@ public static class DatabaseSeeder
             {
                 SiteTypeId = siteTypes["Standard Back-In"].Id,
                 SiteNumber = "A02",
+                MaxRvLengthFt = 35,
                 HookupType = HookupType.FullHookup,
                 SizeSqft = 1800,
                 Notes = "Seed standard back-in full-hookup site.",
@@ -142,6 +144,7 @@ public static class DatabaseSeeder
             {
                 SiteTypeId = siteTypes["Standard Back-In"].Id,
                 SiteNumber = "B01",
+                MaxRvLengthFt = 30,
                 HookupType = HookupType.PartialHookup,
                 SizeSqft = 1600,
                 Notes = "Seed partial-hookup site near bathhouse.",
@@ -151,6 +154,7 @@ public static class DatabaseSeeder
             {
                 SiteTypeId = siteTypes["Tent and Van"].Id,
                 SiteNumber = "C01",
+                MaxRvLengthFt = null,
                 HookupType = HookupType.NoHookup,
                 SizeSqft = 900,
                 Notes = "Seed no-hookup tent and van site.",
