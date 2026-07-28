@@ -6,6 +6,9 @@ using RVPark.Data;
 using RVPark.Models;
 using RVPark.Services;
 using SQLitePCL;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace RVPark.Controllers
 {
@@ -39,21 +42,32 @@ namespace RVPark.Controllers
             }
 
             // User found
+           // User found and password correct
             if (foundUser != null)
             {
-                ViewData["UserFoundAndPassSuccess"] = true;
-                // Customer redirect
+                // Create the user's identity claims
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, foundUser.Id.ToString()),
+                    new Claim(ClaimTypes.Email, foundUser.Email),
+                    new Claim(ClaimTypes.Name, foundUser.FirstName),
+                    new Claim(ClaimTypes.Role, foundUser.AccessLevel.ToString())
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                // Issue the encrypted cookie to the browser
+                HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity)).Wait();
+
+                // Redirect based on role
                 if (foundUser.AccessLevel is AccessLevel.Customer)
                 {
                     return RedirectToAction("MyReservations", "Reservations");
                 }
-
-                // Manager & Admin redirect
-                if (foundUser.AccessLevel is AccessLevel.Admin or AccessLevel.Manager)
+                else if (foundUser.AccessLevel is AccessLevel.Admin or AccessLevel.Manager)
                 {
                     return RedirectToAction("Index", "Dashboard");
                 }
-                // Staff Redirect
                 else if (foundUser.AccessLevel is AccessLevel.Employee)
                 {
                     return RedirectToAction("Index", "Employees");
@@ -108,8 +122,17 @@ namespace RVPark.Controllers
 
         // Logout POST bypass
         [HttpPost]
-        public IActionResult Logout()
+        public IActionResult LogoutBypass()
         {
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Logout POST
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            // Destroy the cookie
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
     }
