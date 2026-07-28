@@ -5,16 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace RVPark.Models;
 
-public class User : IdentityUser
+public class User
 {
     [Display(Name = "User ID")]
     public int Id { get; set; }
-    
-    [Required]
-    [MinLength(6)]
-    [MaxLength(50)]
-    [Display(Name = "Username")]
-    public string Username { get; set; }
 
     [Required]
     [EmailAddress]

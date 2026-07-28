@@ -51,13 +51,10 @@ namespace RVPark.Controllers
         [HttpPost]
         public IActionResult Register(User user, ApplicationDbContext context)
         {
-            // Check for duplicate username
-            // ViewData["DataException"] can then be used in the HTML with Razor to display an error or redirect
-            // ErrorMessage is also set and can be used if desired
-            if (context.Users.Any(u => u.Username != user.Username))
+            // Check for duplicate Email
+            if (context.Users.Any(u => u.Email != user.Email))
             {
-                // No dusplicate username
-                // using var db = new ApplicationDbContext(new DbContextOptions<ApplicationDbContext>());
+                // No duplicate email
                 // Add user to database and redirect if there are no issues
                 context.Add(user);
                 context.SaveChanges();
@@ -65,9 +62,11 @@ namespace RVPark.Controllers
                 // Default role is Customer, so a new user will always be redirected to reservations
                 return RedirectToAction("MyReservations", "Reservations");
             }
-            // Don't redirect if username already exists
+            // Don't redirect if email already exists
+            // ViewData["DataException"] can be used in the HTML with Razor to display an error or redirect
+            // ErrorMessage is also set and can be used if desired
             ViewData["DataException"] = true;
-            ViewData["ErrorMessage"] = "Username already exists";
+            ViewData["ErrorMessage"] = "Email already exists";
             return View();
         }
 

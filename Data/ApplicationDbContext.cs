@@ -19,7 +19,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasIndex(user => user.Username).IsUnique();
+            entity.HasIndex(user => user.Email).IsUnique();
         });
 
         modelBuilder.Entity<SiteType>(entity =>
