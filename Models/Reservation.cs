@@ -11,6 +11,7 @@ public class Reservation
     [Display(Name = "Reservation Number")]
     public string ReservationNumber { get; set; } = string.Empty;
 
+    // User ID
     [Display(Name = "Customer")]
     public int CustomerId { get; set; }
 
@@ -59,7 +60,7 @@ public class Reservation
     [Display(Name = "Checked Out At")]
     public DateTime? CheckedOutAt { get; set; }
 
-    public Customer? Customer { get; set; }
+    public User? User { get; set; }
 
     public Site? Site { get; set; }
 

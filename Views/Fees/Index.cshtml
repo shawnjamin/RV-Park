@@ -41,7 +41,7 @@
                         <tr>
                             <td class="fw-bold">@fee.Reservation?.ReservationNumber</td>
                             <td>
-                                @fee.Reservation?.Customer?.FirstName @fee.Reservation?.Customer?.LastName
+                                @fee.Reservation?.User?.FirstName @fee.Reservation?.User?.LastName
                             </td>
                             <td>@fee.Type</td>
                             <td>@fee.Description</td>
@@ -81,7 +81,7 @@
 
                                                 <div class="mt-3">
                                                     <strong>Reservation:</strong> @fee.Reservation?.ReservationNumber<br />
-                                                    <strong>Customer:</strong> @fee.Reservation?.Customer?.FirstName @fee.Reservation?.Customer?.LastName<br />
+                                                    <strong>Customer:</strong> @fee.Reservation?.User?.FirstName @fee.Reservation?.User?.LastName<br />
                                                     <strong>Fee Type:</strong> @fee.Type<br />
                                                     <strong>Amount:</strong> @fee.Amount.ToString("C")
                                                 </div>

@@ -40,7 +40,7 @@ namespace RVPark.Controllers
         public async Task<IActionResult> Index(string searchQuery)
         {
             var reservations = _context.Reservations
-                .Include(r => r.Customer)
+                .Include(r => r.User)
                 .Include(r => r.Site)
                 .AsQueryable();
 
@@ -49,8 +49,8 @@ namespace RVPark.Controllers
                 searchQuery = searchQuery.ToLower();
                 reservations = reservations.Where(r => 
                     r.ReservationNumber.ToLower().Contains(searchQuery) ||
-                    (r.Customer != null && r.Customer.FirstName.ToLower().Contains(searchQuery)) ||
-                    (r.Customer != null && r.Customer.LastName.ToLower().Contains(searchQuery)));
+                    (r.User != null && r.User.FirstName.ToLower().Contains(searchQuery)) ||
+                    (r.User != null && r.User.LastName.ToLower().Contains(searchQuery)));
             }
 
             // Order by StartDate so upcoming are first
@@ -63,7 +63,7 @@ namespace RVPark.Controllers
             if (id == null) return NotFound();
 
             var reservation = await _context.Reservations
-                .Include(r => r.Customer)
+                .Include(r => r.User)
                 .Include(r => r.Site)
                 .FirstOrDefaultAsync(m => m.Id == id);
 

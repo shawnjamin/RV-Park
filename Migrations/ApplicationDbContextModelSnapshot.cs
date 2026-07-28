@@ -48,61 +48,6 @@ namespace RVPark.Migrations
                     b.ToTable("Bills");
                 });
 
-            modelBuilder.Entity("RVPark.Models.Customer", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Phone")
-                        .HasMaxLength(30)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("RVPark.Models.Employee", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("AccessLevel")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsLocked")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Employees");
-                });
-
             modelBuilder.Entity("RVPark.Models.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -311,6 +256,15 @@ namespace RVPark.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AccessLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -319,13 +273,66 @@ namespace RVPark.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
+                    b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -342,28 +349,6 @@ namespace RVPark.Migrations
                     b.Navigation("Reservation");
                 });
 
-            modelBuilder.Entity("RVPark.Models.Customer", b =>
-                {
-                    b.HasOne("RVPark.Models.User", "User")
-                        .WithOne("Customer")
-                        .HasForeignKey("RVPark.Models.Customer", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("RVPark.Models.Employee", b =>
-                {
-                    b.HasOne("RVPark.Models.User", "User")
-                        .WithOne("Employee")
-                        .HasForeignKey("RVPark.Models.Employee", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("RVPark.Models.Payment", b =>
                 {
                     b.HasOne("RVPark.Models.Bill", "Bill")
@@ -377,7 +362,7 @@ namespace RVPark.Migrations
 
             modelBuilder.Entity("RVPark.Models.Reservation", b =>
                 {
-                    b.HasOne("RVPark.Models.Customer", "Customer")
+                    b.HasOne("RVPark.Models.User", "User")
                         .WithMany("Reservations")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -389,9 +374,9 @@ namespace RVPark.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Customer");
-
                     b.Navigation("Site");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RVPark.Models.Site", b =>
@@ -421,11 +406,6 @@ namespace RVPark.Migrations
                     b.Navigation("Payments");
                 });
 
-            modelBuilder.Entity("RVPark.Models.Customer", b =>
-                {
-                    b.Navigation("Reservations");
-                });
-
             modelBuilder.Entity("RVPark.Models.Reservation", b =>
                 {
                     b.Navigation("Bills");
@@ -445,9 +425,7 @@ namespace RVPark.Migrations
 
             modelBuilder.Entity("RVPark.Models.User", b =>
                 {
-                    b.Navigation("Customer");
-
-                    b.Navigation("Employee");
+                    b.Navigation("Reservations");
                 });
 #pragma warning restore 612, 618
         }
