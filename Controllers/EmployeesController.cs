@@ -11,11 +11,11 @@ public class EmployeesController(ApplicationDbContext context) : Controller
     // Shows all employee accounts
     public async Task<IActionResult> Index()
     {
-        var employees = await context.Employees
+        var employees = await context.Users
             .AsNoTracking()
-            .Include(employee => employee.User) // Include User so we the employee email can be displayed.
-            .OrderBy(employee => employee.FirstName)
-            .ThenBy(employee => employee.FirstName)
+            .Where( user => user.AccessLevel != AccessLevel.Customer) // Filter by access level where the access level IS NOT equal to the customer's access level
+            .OrderBy(user => user.FirstName)
+            .ThenBy(user => user.LastName)
             .ToListAsync();
 
             return View(employees);
@@ -29,10 +29,11 @@ public class EmployeesController(ApplicationDbContext context) : Controller
             return NotFound();
         }
 
-        var employee = await context.Employees
+        var employee = await context.Users
             .AsNoTracking()
-            .Include(employee => employee.User)
-            .FirstOrDefaultAsync(employee => employee.Id == id);
+            .FirstOrDefaultAsync( user =>
+                user.Id == id &&
+                user.AccessLevel != AccessLevel.Customer);
 
         if (employee is null)
         {
@@ -78,7 +79,7 @@ public class EmployeesController(ApplicationDbContext context) : Controller
         await context.SaveChangesAsync();
 
         // Create the Employee record connected to the User record.
-        var employee = new Employee
+        var employee = new User
         {
             Id = user.Id,
             FirstName = viewModel.FirstName,
@@ -87,7 +88,7 @@ public class EmployeesController(ApplicationDbContext context) : Controller
             IsLocked = viewModel.IsLocked
         };
 
-        context.Employees.Add(employee);
+        context.Users.Add(employee);
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Index));
@@ -101,9 +102,11 @@ public class EmployeesController(ApplicationDbContext context) : Controller
             return NotFound();
         }
 
-        var employee = await context.Employees
-            .Include(employee => employee.User)
-            .FirstOrDefaultAsync(employee => employee.Id == id);
+        var employee = await context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync( user =>
+                user.Id == id &&
+                user.AccessLevel != AccessLevel.Customer);
 
         if (employee is null)
         {
@@ -116,7 +119,7 @@ public class EmployeesController(ApplicationDbContext context) : Controller
             Id = employee.Id,
             FirstName = employee.FirstName,
             LastName = employee.LastName,
-            Email = employee.User.Email,
+            Email = employee.Email,
             AccessLevel = employee.AccessLevel,
             IsLocked = employee.IsLocked
         };
@@ -150,9 +153,10 @@ public class EmployeesController(ApplicationDbContext context) : Controller
             return View(viewModel);
         }
 
-        var employee = await context.Employees
-            .Include(employee => employee.User)
-            .FirstOrDefaultAsync(employee => employee.Id == id);
+        var employee = await context.Users
+            .FirstOrDefaultAsync( user =>
+                user.Id == id &&
+                user.AccessLevel != AccessLevel.Customer);
 
         if (employee is null)
         {
@@ -165,7 +169,7 @@ public class EmployeesController(ApplicationDbContext context) : Controller
         employee.AccessLevel = viewModel.AccessLevel;
         employee.IsLocked = viewModel.IsLocked;
         // Update related UserData
-        employee.User.Email = viewModel.Email;
+        employee.Email = viewModel.Email;
 
         await context.SaveChangesAsync();
 
@@ -177,7 +181,10 @@ public class EmployeesController(ApplicationDbContext context) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleLock(int id)
     {
-        var employee = await context.Employees.FindAsync(id);
+        var employee = await context.Users
+            .FirstOrDefaultAsync( user =>
+                user.Id == id &&
+                user.AccessLevel != AccessLevel.Customer);
 
         if (employee is null)
         {
