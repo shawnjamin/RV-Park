@@ -44,9 +44,12 @@
                                 <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" required />
                                 <label>Email address</label>
                             </div>
+                            @* Email uniqueness error *@
                             @if (ViewData["EmailAlreadyExists"] is true)
                             {
-                                <!-- TODO: Add error message here about email already existing. ViewData["ErrorMessage"] is already set if you would like to use it -->
+                                <div class="text-danger small mt-1 ps-1 fw-bold">
+                                    <i class="fa-solid fa-triangle-exclamation me-1"></i> @ViewData["ErrorMessage"]
+                                </div>
                             }
                         </div>
                         <div class="col-md-6">
@@ -71,11 +74,17 @@
                                 <label>Confirm Password</label>
                             </div>
                         </div>
+                        @* Password match error *@
                         @if (ViewData["PasswordMatch"] is false)
                         {
-                            <!-- TODO: Add error message here about passwords not matching. ViewData["ErrorMessage"] is already set if you would like to use it-->
+                            <div class="col-12">
+                                <div class="text-danger small mt-1 ps-1 fw-bold text-end">
+                                    <i class="fa-solid fa-triangle-exclamation me-1"></i> @ViewData["ErrorMessage"]
+                                </div>
+                            </div>
                         }
                     </div>
+
                     @* Submit button *@
                     <div class="d-grid gap-2 mt-4 mb-0">
                         <button type="submit" class="btn btn-primary btn-lg">Create Account</button>
