@@ -61,9 +61,13 @@ namespace RVPark.Controllers
                         reservation.StartDate < checkOut.Value &&
                         reservation.EndDate > checkIn.Value));
             }
-
-            // TODO: Apply RV-length filtering when the Site model includes
-            // a dedicated maximum RV-length property.
+            // Filter by RV length
+            if (rvLength.HasValue)
+            {
+                sitesQuery = sitesQuery.Where( site =>
+                    site.MaxRvLengthFt.HasValue &&
+                    site.MaxRvLengthFt.Value >= rvLength.Value);
+            }
 
             var availableSites = await sitesQuery
                 .OrderBy(site => site.SiteNumber)
@@ -103,7 +107,7 @@ namespace RVPark.Controllers
         // POST: RvSites/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SiteNumber,SiteTypeId,HookupType,SizeSqft,Notes,IsActive")] Site site)
+        public async Task<IActionResult> Create([Bind("Id,SiteNumber,SiteTypeId,HookupType,SizeSqft,MaxRvLengthFt,Notes,IsActive")] Site site)
         {
             if (ModelState.IsValid)
             {
@@ -130,7 +134,7 @@ namespace RVPark.Controllers
         // POST: RvSites/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SiteNumber,SiteTypeId,HookupType,SizeSqft,Notes,IsActive")] Site site)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,SiteNumber,SiteTypeId,HookupType,SizeSqft,MaxRvLengthFt,Notes,IsActive")] Site site)
         {
             if (id != site.Id) return NotFound();
 
