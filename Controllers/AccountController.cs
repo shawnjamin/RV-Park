@@ -20,7 +20,7 @@ namespace RVPark.Controllers
 
         // Login POST bypass
         [HttpPost]
-        public IActionResult Login(string email, string password, bool rememberMe,
+        public IActionResult LoginSubmit(string email, string password, bool rememberMe,
             [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
         {
             // ViewData["UserFoundOrWrongPassword"] can be used in the HTML with Razor to display an error or success message
@@ -29,8 +29,13 @@ namespace RVPark.Controllers
             // This has to be done in an if statement so we can check for null next
             if (context.Users.Any(u => u.Email == email))
             {
-                foundUser = context.Users.First(u =>
-                    u.Email == email && u.PasswordHash == hasher.HashPassword(u, password));
+                // Find user via email
+                foundUser = context.Users.First(u => u.Email == email);
+                // Check for password match
+                if (hasher.VerifyHashedPassword(foundUser, password) == PasswordVerificationResult.Failed)
+                {
+                    foundUser = null;
+                }
             }
 
             // User found
@@ -58,7 +63,7 @@ namespace RVPark.Controllers
             // No user found
             ViewData["UserFoundAndPassSuccess"] = false;
             ViewData["ErrorMessage"] = "Email not found or password was incorrect. Please try again.";
-        return View();
+            return View("Login");
         }
 
         // Register GET
