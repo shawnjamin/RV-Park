@@ -1,14 +1,11 @@
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RVPark.Data;
-using RVPark.Models;
-using RVPark.Services;
-using SQLitePCL;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using RVPark.Data;
+using RVPark.Models;
+using RVPark.Services;
 
 namespace RVPark.Controllers
 {
@@ -23,29 +20,30 @@ namespace RVPark.Controllers
 
         // Login POST
         [HttpPost]
-        public IActionResult LoginSubmit(string email, string password, bool rememberMe,
-            [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
+        public async Task<IActionResult> LoginSubmit(
+            string email, 
+            string password, 
+            bool rememberMe,
+            [FromServices] ApplicationDbContext context, 
+            [FromServices] UserPasswordHasher hasher)
         {
-            // ViewData["UserFoundOrWrongPassword"] can be used in the HTML with Razor to display an error or success message
-            User foundUser = null;
-            // Only set foundUser if the email is actually found
-            // This has to be done in an if statement so we can check for null next
+            User? foundUser = null;
+
             if (context.Users.Any(u => u.Email == email))
             {
-                // Find user via email
-                foundUser = context.Users.First(u => u.Email == email);
-                // Check for password match
-                if (hasher.VerifyHashedPassword(foundUser, password) == PasswordVerificationResult.Failed)
+                foundUser = context.Users.FirstOrDefault(u => u.Email == email);
+
+                if (foundUser != null && hasher.VerifyHashedPassword(foundUser, password) == PasswordVerificationResult.Failed)
                 {
                     foundUser = null;
                 }
             }
 
-            // User found
-           // User found and password correct
             if (foundUser != null)
             {
-                // Create the user's identity claims
+                ViewData["UserFoundAndPassSuccess"] = true;
+
+                // Create user identity claims
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, foundUser.Id.ToString()),
@@ -56,8 +54,17 @@ namespace RVPark.Controllers
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                // Issue the encrypted cookie to the browser
-                HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity)).Wait();
+                // Remember Me authentication properties
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = rememberMe,
+                    ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(14) : null
+                };
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme, 
+                    new ClaimsPrincipal(claimsIdentity), 
+                    authProperties);
 
                 // Redirect based on role
                 if (foundUser.AccessLevel is AccessLevel.Customer)
@@ -74,7 +81,6 @@ namespace RVPark.Controllers
                 }
             }
 
-            // No user found
             ViewData["UserFoundAndPassSuccess"] = false;
             ViewData["ErrorMessage"] = "Email not found or password was incorrect. Please try again.";
             return View("Login");
@@ -89,47 +95,44 @@ namespace RVPark.Controllers
 
         // Register POST
         [HttpPost]
-        public async Task<IActionResult> RegisterSubmit(User userFromForm, string password, string confirmPassword, [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
+        public async Task<IActionResult> RegisterSubmit(
+            User userFromForm, 
+            string password, 
+            string confirmPassword, 
+            [FromServices] ApplicationDbContext context, 
+            [FromServices] UserPasswordHasher hasher)
         {
-            // Check for match between passwords
+            // Password match check
             if (password != confirmPassword)
             {
                 ViewData["PasswordMatch"] = false;
-                ViewData["ErrorMessage"] = "Passwords do not match";
+                ViewData["ErrorMessage"] = "Passwords do not match.";
                 return View("Register", userFromForm);
             }
 
-            // --- PHONE NUMBER VALIDATION ---
-            // Strip out dashes, spaces, and parenthesis to just count the digits
+            // Phone validation check
             var digitsOnly = new string(userFromForm.Phone?.Where(char.IsDigit).ToArray());
             if (string.IsNullOrEmpty(digitsOnly) || digitsOnly.Length < 10)
             {
-                // Re-use the existing EmailAlreadyExists view data trigger to show a general error
-                ViewData["EmailAlreadyExists"] = true; 
                 ViewData["ErrorMessage"] = "Please enter a valid 10-digit phone number.";
                 return View("Register", userFromForm);
             }
-            // Normalize the phone number in the database to just be the 10 digits
             userFromForm.Phone = digitsOnly;
 
-            ViewData["PasswordMatch"] = true;
-
-            // Check for duplicate Email
+            // Email duplicate check
             if (context.Users.Any(u => u.Email == userFromForm.Email))
             {
                 ViewData["EmailAlreadyExists"] = true;
-                ViewData["ErrorMessage"] = "Email already exists";
+                ViewData["ErrorMessage"] = "An account with that email already exists.";
                 return View("Register", userFromForm);
             }
 
-            // Hash password before adding to DB
+            // Hash password and save user
             userFromForm.PasswordHash = hasher.HashPassword(userFromForm, password);
-            
-            // Add user to database
             context.Add(userFromForm);
             await context.SaveChangesAsync();
 
-            // Automatically log user in
+            // Auto log in after registration
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, userFromForm.Id.ToString()),
@@ -139,27 +142,26 @@ namespace RVPark.Controllers
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            // Throw a success banner to the UI
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14)
+            };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme, 
+                new ClaimsPrincipal(claimsIdentity), 
+                authProperties);
+
             TempData["SuccessMessage"] = "Account created successfully! Welcome to RV Park.";
-
-            // Default role is Customer, so redirect to reservations
             return RedirectToAction("MyReservations", "Reservations");
-        }
-
-        // Logout POST bypass
-        [HttpPost]
-        public IActionResult LogoutBypass()
-        {
-            return RedirectToAction("Index", "Home");
         }
 
         // Logout POST
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
-            // Destroy the cookie
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
