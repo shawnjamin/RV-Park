@@ -53,8 +53,10 @@
                             }
                         </div>
                         <div class="col-md-6">
-                            <div class="form-floating">
-                                <input asp-for="Phone" type="tel" class="form-control" placeholder="(555) 555-5555" required />
+                            <div class="form-floating mb-3">
+                                <input asp-for="Phone" type="tel" class="form-control" placeholder="(555) 555-5555" required 
+                                    pattern="^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$" 
+                                    title="Please enter a valid 10-digit phone number (e.g. 555-555-5555)" />
                                 <label>Phone number</label>
                             </div>
                         </div>

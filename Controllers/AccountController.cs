@@ -99,6 +99,19 @@ namespace RVPark.Controllers
                 return View("Register", userFromForm);
             }
 
+            // --- PHONE NUMBER VALIDATION ---
+            // Strip out dashes, spaces, and parenthesis to just count the digits
+            var digitsOnly = new string(userFromForm.Phone?.Where(char.IsDigit).ToArray());
+            if (string.IsNullOrEmpty(digitsOnly) || digitsOnly.Length < 10)
+            {
+                // Re-use the existing EmailAlreadyExists view data trigger to show a general error
+                ViewData["EmailAlreadyExists"] = true; 
+                ViewData["ErrorMessage"] = "Please enter a valid 10-digit phone number.";
+                return View("Register", userFromForm);
+            }
+            // Normalize the phone number in the database to just be the 10 digits
+            userFromForm.Phone = digitsOnly;
+
             ViewData["PasswordMatch"] = true;
 
             // Check for duplicate Email
