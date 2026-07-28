@@ -20,9 +20,10 @@ namespace RVPark.Controllers
 
         // Login POST bypass
         [HttpPost]
-        public IActionResult Login(string email, string password, [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
+        public IActionResult Login(string email, string password, bool rememberMe,
+            [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
         {
-            // ViewData["UserFound"] can be used in the HTML with Razor to display an error or success message
+            // ViewData["UserFoundOrWrongPassword"] can be used in the HTML with Razor to display an error or success message
             User foundUser = null;
             // Only set foundUser if the email is actually found
             // This has to be done in an if statement so we can check for null next
@@ -31,15 +32,17 @@ namespace RVPark.Controllers
                 foundUser = context.Users.First(u =>
                     u.Email == email && u.PasswordHash == hasher.HashPassword(u, password));
             }
+
             // User found
             if (foundUser != null)
             {
-                ViewData["UserFound"] = true;
+                ViewData["UserFoundAndPassSuccess"] = true;
                 // Customer redirect
                 if (foundUser.AccessLevel is AccessLevel.Customer)
                 {
                     return RedirectToAction("MyReservations", "Reservations");
                 }
+
                 // Manager & Admin redirect
                 if (foundUser.AccessLevel is AccessLevel.Admin or AccessLevel.Manager)
                 {
@@ -51,9 +54,11 @@ namespace RVPark.Controllers
                     return RedirectToAction("Index", "Employees");
                 }
             }
+
             // No user found
-            ViewData["UserFound"] = false;
-            return View();
+            ViewData["UserFoundAndPassSuccess"] = false;
+            ViewData["ErrorMessage"] = "Email not found or password was incorrect. Please try again.";
+        return View();
         }
 
         // Register GET
