@@ -21,7 +21,7 @@ namespace RVPark.Controllers
             return View();
         }
 
-        // Login POST bypass
+        // Login POST
         [HttpPost]
         public IActionResult LoginSubmit(string email, string password, bool rememberMe,
             [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
@@ -87,36 +87,51 @@ namespace RVPark.Controllers
             return View(new User());
         }
 
-        // Register POST bypass
+        // Register POST
         [HttpPost]
-        public IActionResult RegisterSubmit(User userFromForm, string password, string confirmPassword, [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
+        public async Task<IActionResult> RegisterSubmit(User userFromForm, string password, string confirmPassword, [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
         {
             // Check for match between passwords
-            // ViewData["PasswordMatch"] can be used in the HTML with Razor to display an error
             if (password != confirmPassword)
             {
                 ViewData["PasswordMatch"] = false;
-                ViewData["Error Message"] = "Passwords do not match";
-                return View();
+                ViewData["ErrorMessage"] = "Passwords do not match";
+                return View("Register", userFromForm);
             }
+
             ViewData["PasswordMatch"] = true;
-            // Have to hash password before adding to DB
-            userFromForm.PasswordHash = hasher.HashPassword(userFromForm, password);
+
             // Check for duplicate Email
             if (context.Users.Any(u => u.Email == userFromForm.Email))
             {
-                // Don't redirect if email already exists
-                // ViewData["EmailAlreadyExists"] can be used in the HTML with Razor to display an error
-                // ErrorMessage is also set and can be used if desired
                 ViewData["EmailAlreadyExists"] = true;
                 ViewData["ErrorMessage"] = "Email already exists";
-                return View();
+                return View("Register", userFromForm);
             }
-            // Add user to database and redirect if there are no issues
+
+            // Hash password before adding to DB
+            userFromForm.PasswordHash = hasher.HashPassword(userFromForm, password);
+            
+            // Add user to database
             context.Add(userFromForm);
-            context.SaveChanges();
-            ViewData["EmailAlreadyExists"] = false;
-            // Default role is Customer, so a new user will always be redirected to reservations
+            await context.SaveChangesAsync();
+
+            // Automatically log user in
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userFromForm.Id.ToString()),
+                new Claim(ClaimTypes.Email, userFromForm.Email),
+                new Claim(ClaimTypes.Name, userFromForm.FirstName),
+                new Claim(ClaimTypes.Role, userFromForm.AccessLevel.ToString())
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+            // Throw a success banner to the UI
+            TempData["SuccessMessage"] = "Account created successfully! Welcome to RV Park.";
+
+            // Default role is Customer, so redirect to reservations
             return RedirectToAction("MyReservations", "Reservations");
         }
 
