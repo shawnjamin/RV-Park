@@ -7,7 +7,7 @@ using RVPark.Models;
 
 namespace RVPark.Controllers;
 
-[Authorize(Roles = "Admin, Manager, Employee")]
+[Authorize(Roles = "Admin, Manager")]
 public class EmployeesController(ApplicationDbContext context) : Controller
 {
     // Shows all employee accounts
