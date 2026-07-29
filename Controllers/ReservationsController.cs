@@ -453,20 +453,91 @@ namespace RVPark.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Temporary public customer edit page used for UI development.
+        // GET: Load the real reservation for the customer to edit
         [HttpGet]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
-        public IActionResult EditMyTrip(int id)
+        public async Task<IActionResult> EditMyTrip(int id)
         {
-            var mockReservation = new Reservation
-            {
-                Id = id,
-                ReservationNumber = "RES-9999",
-                StartDate = DateTime.Now.AddDays(10),
-                EndDate = DateTime.Now.AddDays(14)
-            };
+            var reservation = await _context.Reservations
+                .Include(r => r.Site)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-            return View(mockReservation);
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            // SERVER BLOCK: Do not allow loading the edit form for past/active trips
+            if (reservation.StartDate.Date <= DateTime.Today)
+            {
+                TempData["ErrorMessage"] = "Trips that have already started or passed cannot be modified.";
+                return RedirectToAction(nameof(MyReservations));
+            }
+
+            return View(reservation);
+        }
+
+        // POST: Save the customer's changes to the database
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        public async Task<IActionResult> EditMyTrip(int id, [Bind("StartDate,EndDate")] Reservation updateParams)
+        {
+            // SERVER VALIDATION: Check-out must be AFTER check-in
+            if (updateParams.EndDate <= updateParams.StartDate)
+            {
+                TempData["ErrorMessage"] = "Check-out date must be after your Check-in date.";
+                return RedirectToAction(nameof(EditMyTrip), new { id = id });
+            }
+
+            var reservation = await _context.Reservations.FindAsync(id);
+
+            if (reservation != null)
+            {
+                // SERVER BLOCK: Double check they aren't hacking a past trip
+                if (reservation.StartDate.Date <= DateTime.Today)
+                {
+                    TempData["ErrorMessage"] = "Trips that have already started or passed cannot be modified.";
+                    return RedirectToAction(nameof(MyReservations));
+                }
+
+                reservation.StartDate = updateParams.StartDate;
+                reservation.EndDate = updateParams.EndDate;
+
+                await _context.SaveChangesAsync();
+                
+                TempData["SuccessMessage"] = "Trip dates successfully updated!";
+            }
+
+            return RedirectToAction(nameof(MyReservations));
+        }
+
+        // POST: Cancels a customer's reservation
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        public async Task<IActionResult> CancelMyTrip(int id)
+        {
+            var reservation = await _context.Reservations.FindAsync(id);
+
+            if (reservation != null)
+            {
+                // SERVER BLOCK: Prevent cancelling a trip that already started
+                if (reservation.StartDate.Date <= DateTime.Today)
+                {
+                    TempData["ErrorMessage"] = "Trips that have already started or passed cannot be cancelled.";
+                    return RedirectToAction(nameof(MyReservations));
+                }
+
+                reservation.Status = ReservationStatus.Cancelled;
+                reservation.CancelledAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+                
+                TempData["SuccessMessage"] = $"Reservation {reservation.ReservationNumber} has been cancelled.";
+            }
+
+            return RedirectToAction(nameof(MyReservations));
         }
 
         // Returns active sites that do not overlap another reservation.
