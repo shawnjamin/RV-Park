@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
 using RVPark.Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RVPark.Controllers
 {
@@ -16,24 +18,35 @@ namespace RVPark.Controllers
         }
 
         // Public customer dashboard
+        [Authorize(Roles = "Customer")] 
         [HttpGet]
-        public IActionResult MyReservations()
+        public async Task<IActionResult> MyReservations([FromServices] ApplicationDbContext _context)
         {
-            // Mock data for UI testing
-            var mockReservations = new List<Reservation>
-            {
-                new Reservation 
-                { 
-                    Id = 1, 
-                    ReservationNumber = "RES-1042", 
-                    StartDate = DateTime.Now.AddDays(12), 
-                    EndDate = DateTime.Now.AddDays(15),
-                    Status = ReservationStatus.Confirmed,
-                    Site = new Site { SiteNumber = "B14" }
-                }
-            };
+            // Read the Email claim out of the newly implemented Cookie
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
-            return View(mockReservations);
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Query the DB for this exact user, including their reservations and sites
+            var currentUser = await _context.Users
+                .Include(u => u.Reservations)
+                    .ThenInclude(r => r.Site)
+                .FirstOrDefaultAsync(u => u.Email == userEmail);
+
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Sort their trips by date
+            var myTrips = currentUser.Reservations
+                .OrderBy(r => r.StartDate)
+                .ToList();
+
+            return View(myTrips);
         }
 
         // GET: Reservations (Includes the Search logic from the rubric)

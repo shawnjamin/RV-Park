@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
 using RVPark.Models;
 using RVPark.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var seedRequested = args.Contains("--seed", StringComparer.OrdinalIgnoreCase);
 var builderArgs = args
@@ -24,6 +25,15 @@ builder.Services.AddTransient<UserPasswordHasher>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
+
+// Add Cookie Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/Login";
+    });
 
 var app = builder.Build();
 
@@ -63,6 +73,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
