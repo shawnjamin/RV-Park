@@ -1,9 +1,11 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RVPark.Models;
 
 namespace RVPark.Controllers;
 
+[AllowAnonymous]
 public class HomeController : Controller
 {
     [HttpGet]

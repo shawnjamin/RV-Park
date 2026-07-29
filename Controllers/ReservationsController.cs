@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace RVPark.Controllers
 {
+    [Authorize(Roles = "Customer, Employee, Manager, Admin")]
     public class ReservationsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -18,7 +19,6 @@ namespace RVPark.Controllers
         }
 
         // Public customer dashboard
-        [Authorize(Roles = "Customer")] 
         [HttpGet]
         public async Task<IActionResult> MyReservations([FromServices] ApplicationDbContext _context)
         {

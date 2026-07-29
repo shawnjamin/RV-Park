@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace RVPark.Controllers;
 /// Site charges are excluded because they are managed separately from
 /// additional reservation fees.
 /// </summary>
+[Authorize(Roles = "Admin, Manager")]
 public class FeesController(ApplicationDbContext context) : Controller
 {
 
@@ -20,6 +22,7 @@ public class FeesController(ApplicationDbContext context) : Controller
     /// Displays a list of all additional reservation fees.
     /// Normal site charges are excluded from the results.
     /// </summary>
+    [Authorize(Roles = "Customer, Employee, Admin, Manager")]
     public async Task<IActionResult> Index()
     {
         // Retrieve all non-site charge bills with their associated
@@ -39,6 +42,7 @@ public class FeesController(ApplicationDbContext context) : Controller
     /// Displays the details of a specific reservation fee.
     /// </summary>
     /// <param name="id">The ID of the fee to display. </param>
+    [Authorize(Roles = "Customer, Employee, Admin, Manager")]
     public async Task<IActionResult> Details(int? id)
     {
         // A fee won't be found with no ID.

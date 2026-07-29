@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,7 @@ using RVPark.Models;
 
 namespace RVPark.Controllers;
 
+[Authorize(Roles = "Admin, Manager, Employee")]
 public class EmployeesController(ApplicationDbContext context) : Controller
 {
     // Shows all employee accounts
