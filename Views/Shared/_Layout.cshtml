@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Authorization
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,6 +34,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="RvSites" asp-action="Browse">Browse Sites</a>
                         </li>
+                        @if (User.IsInRole("Manager") || User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Dashboard" asp-action="Index">Admin Dashboard</a>
+                            </li>
+                        }
                     </ul>
                     @* Authentication links *@
                     <partial name="_LoginPartial"/>
