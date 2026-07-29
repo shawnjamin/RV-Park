@@ -160,10 +160,15 @@ namespace RVPark.Controllers
 
         // Logout POST
         [HttpPost]
-        public async Task<IActionResult> Logout()
+        public async Task Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "Home");
+            // This setup ensures that the cookie is removed properly when the user is logged out
+            await HttpContext.SignOutAsync("Cookies");
+            var properties = new AuthenticationProperties()
+            {
+                RedirectUri = "/Home/Index"
+            };
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, properties);
         }
     }
 }
