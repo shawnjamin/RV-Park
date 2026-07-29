@@ -1,11 +1,11 @@
-using System.Text.RegularExpressions;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
 using RVPark.Models;
 using RVPark.Services;
-using SQLitePCL;
 
 namespace RVPark.Controllers
 {
@@ -18,49 +18,69 @@ namespace RVPark.Controllers
             return View();
         }
 
-        // Login POST bypass
+        // Login POST
         [HttpPost]
-        public IActionResult LoginSubmit(string email, string password, bool rememberMe,
-            [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
+        public async Task<IActionResult> LoginSubmit(
+            string email, 
+            string password, 
+            bool rememberMe,
+            [FromServices] ApplicationDbContext context, 
+            [FromServices] UserPasswordHasher hasher)
         {
-            // ViewData["UserFoundOrWrongPassword"] can be used in the HTML with Razor to display an error or success message
-            User foundUser = null;
-            // Only set foundUser if the email is actually found
-            // This has to be done in an if statement so we can check for null next
+            User? foundUser = null;
+
             if (context.Users.Any(u => u.Email == email))
             {
-                // Find user via email
-                foundUser = context.Users.First(u => u.Email == email);
-                // Check for password match
-                if (hasher.VerifyHashedPassword(foundUser, password) == PasswordVerificationResult.Failed)
+                foundUser = context.Users.FirstOrDefault(u => u.Email == email);
+
+                if (foundUser != null && hasher.VerifyHashedPassword(foundUser, password) == PasswordVerificationResult.Failed)
                 {
                     foundUser = null;
                 }
             }
 
-            // User found
             if (foundUser != null)
             {
                 ViewData["UserFoundAndPassSuccess"] = true;
-                // Customer redirect
+
+                // Create user identity claims
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, foundUser.Id.ToString()),
+                    new Claim(ClaimTypes.Email, foundUser.Email),
+                    new Claim(ClaimTypes.Name, foundUser.FirstName),
+                    new Claim(ClaimTypes.Role, foundUser.AccessLevel.ToString())
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                // Remember Me authentication properties
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = rememberMe,
+                    ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(14) : null
+                };
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme, 
+                    new ClaimsPrincipal(claimsIdentity), 
+                    authProperties);
+
+                // Redirect based on role
                 if (foundUser.AccessLevel is AccessLevel.Customer)
                 {
                     return RedirectToAction("MyReservations", "Reservations");
                 }
-
-                // Manager & Admin redirect
-                if (foundUser.AccessLevel is AccessLevel.Admin or AccessLevel.Manager)
+                else if (foundUser.AccessLevel is AccessLevel.Admin or AccessLevel.Manager)
                 {
                     return RedirectToAction("Index", "Dashboard");
                 }
-                // Staff Redirect
                 else if (foundUser.AccessLevel is AccessLevel.Employee)
                 {
                     return RedirectToAction("Index", "Employees");
                 }
             }
 
-            // No user found
             ViewData["UserFoundAndPassSuccess"] = false;
             ViewData["ErrorMessage"] = "Email not found or password was incorrect. Please try again.";
             return View("Login");
@@ -73,44 +93,82 @@ namespace RVPark.Controllers
             return View(new User());
         }
 
-        // Register POST bypass
+        // Register POST
         [HttpPost]
-        public IActionResult RegisterSubmit(User userFromForm, string password, string confirmPassword, [FromServices] ApplicationDbContext context, [FromServices] UserPasswordHasher hasher)
+        public async Task<IActionResult> RegisterSubmit(
+            User userFromForm, 
+            string password, 
+            string confirmPassword, 
+            [FromServices] ApplicationDbContext context, 
+            [FromServices] UserPasswordHasher hasher)
         {
-            // Check for match between passwords
-            // ViewData["PasswordMatch"] can be used in the HTML with Razor to display an error
+            // Password match check
             if (password != confirmPassword)
             {
                 ViewData["PasswordMatch"] = false;
-                ViewData["Error Message"] = "Passwords do not match";
-                return View();
+                ViewData["ErrorMessage"] = "Passwords do not match.";
+                return View("Register", userFromForm);
             }
-            ViewData["PasswordMatch"] = true;
-            // Have to hash password before adding to DB
-            userFromForm.PasswordHash = hasher.HashPassword(userFromForm, password);
-            // Check for duplicate Email
+
+            // Phone validation check
+            var digitsOnly = new string(userFromForm.Phone?.Where(char.IsDigit).ToArray());
+            if (string.IsNullOrEmpty(digitsOnly) || digitsOnly.Length < 10)
+            {
+                ViewData["ErrorMessage"] = "Please enter a valid 10-digit phone number.";
+                return View("Register", userFromForm);
+            }
+            userFromForm.Phone = digitsOnly;
+
+            // Email duplicate check
             if (context.Users.Any(u => u.Email == userFromForm.Email))
             {
-                // Don't redirect if email already exists
-                // ViewData["EmailAlreadyExists"] can be used in the HTML with Razor to display an error
-                // ErrorMessage is also set and can be used if desired
                 ViewData["EmailAlreadyExists"] = true;
-                ViewData["ErrorMessage"] = "Email already exists";
-                return View();
+                ViewData["ErrorMessage"] = "An account with that email already exists.";
+                return View("Register", userFromForm);
             }
-            // Add user to database and redirect if there are no issues
+
+            // Hash password and save user
+            userFromForm.PasswordHash = hasher.HashPassword(userFromForm, password);
             context.Add(userFromForm);
-            context.SaveChanges();
-            ViewData["EmailAlreadyExists"] = false;
-            // Default role is Customer, so a new user will always be redirected to reservations
+            await context.SaveChangesAsync();
+
+            // Auto log in after registration
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userFromForm.Id.ToString()),
+                new Claim(ClaimTypes.Email, userFromForm.Email),
+                new Claim(ClaimTypes.Name, userFromForm.FirstName),
+                new Claim(ClaimTypes.Role, userFromForm.AccessLevel.ToString())
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14)
+            };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme, 
+                new ClaimsPrincipal(claimsIdentity), 
+                authProperties);
+
+            TempData["SuccessMessage"] = "Account created successfully! Welcome to RV Park.";
             return RedirectToAction("MyReservations", "Reservations");
         }
 
-        // Logout POST bypass
+        // Logout POST
         [HttpPost]
-        public IActionResult Logout()
+        public async Task Logout()
         {
-            return RedirectToAction("Index", "Home");
+            // This setup ensures that the cookie is removed properly when the user is logged out
+            await HttpContext.SignOutAsync("Cookies");
+            var properties = new AuthenticationProperties()
+            {
+                RedirectUri = "/Home/Index"
+            };
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, properties);
         }
     }
 }

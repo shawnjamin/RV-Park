@@ -36,9 +36,12 @@
     <link rel="stylesheet" href="~/RVPark.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <main role="main" class="pb-3">
-        <div id="sidebar" class="container-fluid">
-            <div class="row flex-nowrap">
+@* Top navigation bar *@
+<header>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow">
+        <div class="container-fluid">
+            @* Brand logo *@
+            <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">RV Park</a>
                 
                 <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
                     <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
@@ -143,17 +146,112 @@
                 </div>
             </div>
         </div>
-    </main>
+    </nav>
+</header>
+<main role="main" class="pb-3">
+    <div id="sidebar" class="container-fluid">
+        <div class="row flex-nowrap">
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - RVPark - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
+                <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
+                    <h3>Admin Portal</h3>
+
+                    <ul class="nav nav-pills flex-column mb-auto" style="list-style: none; padding-left: 0;">
+
+                        <li class="nav-item">
+                            <a asp-controller="Dashboard" asp-action="Index" class="nav-link sidebar-link @IsActive("Dashboard", "Index")">
+                                <i class="fs-4 bi-house me-2"></i> <span class="d-none d-sm-inline">Dashboard</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item mt-3 mb-1">
+                            <span class="text-secondary small fw-bold text-uppercase px-2" style="font-size: 0.75rem;">Park Management</span>
+                        </li>
+
+                        <li>
+                            <a asp-controller="RvSites" asp-action="Index" class="nav-link sidebar-link @IsActive("RvSites", "Index")">
+                                <i class="fs-4 bi-geo-alt me-2"></i> <span class="d-none d-sm-inline">Manage Sites</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Pricing" asp-action="Index" class="nav-link sidebar-link @IsActive("Pricing", "Index")">
+                                <i class="fs-4 bi-tags me-2"></i> <span class="d-none d-sm-inline">Maintain Pricing</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Fees" asp-action="Index" class="nav-link sidebar-link @IsActive("Fees", "Index")">
+                                <i class="fs-4 bi-cash-coin me-2"></i> <span class="d-none d-sm-inline">Manage Fees</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Employees" asp-action="Index" class="nav-link sidebar-link @IsActive("Employees", "Index")">
+                                <i class="fs-4 bi-people me-2"></i>
+                                <span class="d-none d-sm-inline">Employee Accounts</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item mt-3 mb-1">
+                            <span class="text-secondary small fw-bold text-uppercase px-2" style="font-size: 0.75rem;">Bookings</span>
+                        </li>
+
+                        @* Manage Reservations Link *@
+                        <li>
+                            <a asp-controller="Reservations" asp-action="Index" class="nav-link sidebar-link @IsActive("Reservations", "Index")">
+                                <i class="fs-4 bi-calendar-check me-2"></i> <span class="d-none d-sm-inline">Manage Reservations</span>
+                            </a>
+                        </li>
+
+                        @* Employee Walk-In Booking Link *@
+                        <li>
+                            <a asp-controller="Reservations" asp-action="EmployeeCreate" class="nav-link sidebar-link @IsActive("Reservations", "EmployeeCreate")">
+                                <i class="fs-4 bi-person-walking-luggage me-2"></i> <span class="d-none d-sm-inline">Walk-In Booking</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a asp-controller="Reports" asp-action="Index" class="nav-link sidebar-link @IsActive("Reports", "Index")">
+                                <i class="fs-4 bi-file-earmark-bar-graph me-2"></i> <span class="d-none d-sm-inline">Reports</span>
+                            </a>
+                        </li>
+                    </ul>
+                    @* Authentication partial rendering *@
+                    <partial name="_LoginPartial"/>
+                </div>
+            </div>
+
+            @* Global status notification banners *@
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="col py-3">
+                @RenderBody() </div>
+
         </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    </div>
+</main>
+
+<footer class="border-top footer text-muted">
+    <div class="container">
+        &copy; 2026 - RVPark - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    </div>
+</footer>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
 
