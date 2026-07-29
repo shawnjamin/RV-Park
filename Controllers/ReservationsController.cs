@@ -15,18 +15,18 @@ namespace RVPark.Controllers
             _context = context;
         }
 
-        // Public customer dashboard
+        // Displays the public customer reservation dashboard.
         [HttpGet]
         public IActionResult MyReservations()
         {
-            // Mock data for UI testing
+            // Temporary mock data used for UI testing.
             var mockReservations = new List<Reservation>
             {
-                new Reservation 
-                { 
-                    Id = 1, 
-                    ReservationNumber = "RES-1042", 
-                    StartDate = DateTime.Now.AddDays(12), 
+                new Reservation
+                {
+                    Id = 1,
+                    ReservationNumber = "RES-1042",
+                    StartDate = DateTime.Now.AddDays(12),
                     EndDate = DateTime.Now.AddDays(15),
                     Status = ReservationStatus.Confirmed,
                     Site = new Site { SiteNumber = "B14" }
@@ -36,56 +36,79 @@ namespace RVPark.Controllers
             return View(mockReservations);
         }
 
-        // GET: Reservations (Includes the Search logic from the rubric)
+        // Displays all reservations and optionally filters them by reservation
+        // number or customer name.
         public async Task<IActionResult> Index(string searchQuery)
         {
             var reservations = _context.Reservations
-                .Include(r => r.User)
-                .Include(r => r.Site)
+                .Include(reservation => reservation.User)
+                .Include(reservation => reservation.Site)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(searchQuery))
+            if (!string.IsNullOrWhiteSpace(searchQuery))
             {
-                searchQuery = searchQuery.ToLower();
-                reservations = reservations.Where(r => 
-                    r.ReservationNumber.ToLower().Contains(searchQuery) ||
-                    (r.User != null && r.User.FirstName.ToLower().Contains(searchQuery)) ||
-                    (r.User != null && r.User.LastName.ToLower().Contains(searchQuery)));
+                var normalizedSearch = searchQuery.Trim().ToLower();
+
+                reservations = reservations.Where(reservation =>
+                    reservation.ReservationNumber.ToLower().Contains(normalizedSearch) ||
+                    (reservation.User != null &&
+                     reservation.User.FirstName.ToLower().Contains(normalizedSearch)) ||
+                    (reservation.User != null &&
+                     reservation.User.LastName.ToLower().Contains(normalizedSearch)));
             }
 
-            // Order by StartDate so upcoming are first
-            return View(await reservations.OrderByDescending(r => r.StartDate).ToListAsync());
+            return View(await reservations
+                .OrderByDescending(reservation => reservation.StartDate)
+                .ToListAsync());
         }
 
-        // GET: Reservations/Edit/5
+        // Loads an existing reservation for editing.
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null) return NotFound();
+            if (id is null)
+            {
+                return NotFound();
+            }
 
             var reservation = await _context.Reservations
-                .Include(r => r.User)
-                .Include(r => r.Site)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .Include(item => item.User)
+                .Include(item => item.Site)
+                .FirstOrDefaultAsync(item => item.Id == id);
 
-            if (reservation == null) return NotFound();
+            if (reservation is null)
+            {
+                return NotFound();
+            }
 
-            // Populate the ViewBag with available sites
-            ViewBag.AvailableSites = new SelectList(_context.Sites.Where(s => s.IsActive), "Id", "SiteNumber", reservation.SiteId);
+            // Populate the site dropdown with active sites.
+            ViewBag.AvailableSites = new SelectList(
+                _context.Sites.Where(site => site.IsActive),
+                "Id",
+                "SiteNumber",
+                reservation.SiteId);
 
             return View(reservation);
         }
 
-        // POST: Reservations/Edit/5
+        // Saves editable reservation fields.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,StartDate,EndDate,SiteId")] Reservation updateParams)
+        public async Task<IActionResult> Edit(
+            int id,
+            [Bind("Id,StartDate,EndDate,SiteId")] Reservation updateParams)
         {
-            if (id != updateParams.Id) return NotFound();
+            if (id != updateParams.Id)
+            {
+                return NotFound();
+            }
 
             var reservation = await _context.Reservations.FindAsync(id);
-            if (reservation == null) return NotFound();
 
-            // Update the editable fields
+            if (reservation is null)
+            {
+                return NotFound();
+            }
+
             reservation.StartDate = updateParams.StartDate;
             reservation.EndDate = updateParams.EndDate;
             reservation.SiteId = updateParams.SiteId;
@@ -94,27 +117,32 @@ namespace RVPark.Controllers
             {
                 _context.Update(reservation);
                 await _context.SaveChangesAsync();
-                // Redirect back to Index after successful save
+
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ReservationExists(reservation.Id)) return NotFound();
-                else throw;
+                if (!ReservationExists(reservation.Id))
+                {
+                    return NotFound();
+                }
+
+                throw;
             }
         }
 
-        // POST: Reservations/Cancel
+        // Cancels a reservation without deleting it from the database.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
         {
             var reservation = await _context.Reservations.FindAsync(id);
-            if (reservation != null)
+
+            if (reservation is not null)
             {
                 reservation.Status = ReservationStatus.Cancelled;
                 reservation.CancelledAt = DateTime.UtcNow;
-                
+
                 _context.Update(reservation);
                 await _context.SaveChangesAsync();
             }
@@ -122,9 +150,10 @@ namespace RVPark.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // Checks whether a reservation still exists.
         private bool ReservationExists(int id)
         {
-            return _context.Reservations.Any(e => e.Id == id);
+            return _context.Reservations.Any(reservation => reservation.Id == id);
         }
 
         // Loads the employee walk-in reservation form.
@@ -143,12 +172,14 @@ namespace RVPark.Controllers
             return View(viewModel);
         }
 
-        // Creates a walk-in reservation with a manual payment.
+        // Creates a walk-in reservation, customer record when necessary,
+        // site-charge bill, and manual payment.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EmployeeCreate(
             EmployeeReservationFormViewModel viewModel)
         {
+            // Check-in cannot be earlier than today.
             if (viewModel.StartDate.Date < DateTime.Today)
             {
                 ModelState.AddModelError(
@@ -156,6 +187,7 @@ namespace RVPark.Controllers
                     "The check-in date cannot be in the past.");
             }
 
+            // Check-out must occur after check-in.
             if (viewModel.EndDate.Date <= viewModel.StartDate.Date)
             {
                 ModelState.AddModelError(
@@ -163,25 +195,83 @@ namespace RVPark.Controllers
                     "The check-out date must be after the check-in date.");
             }
 
-            var customerExists = await _context.Users
-                .AsNoTracking()
-                .AnyAsync(user =>
-                    user.Id == viewModel.CustomerId &&
-                    user.AccessLevel == AccessLevel.Customer);
+            User? existingCustomer = null;
 
-            if (!customerExists)
+            // When an existing customer was selected, verify that the record
+            // exists and belongs to a customer account.
+            if (viewModel.CustomerId.HasValue &&
+                viewModel.CustomerId.Value > 0)
             {
-                ModelState.AddModelError(
-                    nameof(viewModel.CustomerId),
-                    "The selected customer could not be found.");
+                existingCustomer = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(user =>
+                        user.Id == viewModel.CustomerId.Value &&
+                        user.AccessLevel == AccessLevel.Customer);
+
+                if (existingCustomer is null)
+                {
+                    ModelState.AddModelError(
+                        nameof(viewModel.CustomerId),
+                        "The selected customer could not be found.");
+                }
+            }
+            else
+            {
+                // A new walk-in customer requires basic contact information.
+                if (string.IsNullOrWhiteSpace(viewModel.NewCustomerFirstName))
+                {
+                    ModelState.AddModelError(
+                        nameof(viewModel.NewCustomerFirstName),
+                        "The customer's first name is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(viewModel.NewCustomerLastName))
+                {
+                    ModelState.AddModelError(
+                        nameof(viewModel.NewCustomerLastName),
+                        "The customer's last name is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(viewModel.NewCustomerEmail))
+                {
+                    ModelState.AddModelError(
+                        nameof(viewModel.NewCustomerEmail),
+                        "The customer's email is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(viewModel.NewCustomerPhone))
+                {
+                    ModelState.AddModelError(
+                        nameof(viewModel.NewCustomerPhone),
+                        "The customer's phone number is required.");
+                }
+
+                // Prevent duplicate user accounts with the same email address.
+                if (!string.IsNullOrWhiteSpace(viewModel.NewCustomerEmail))
+                {
+                    var normalizedEmail =
+                        viewModel.NewCustomerEmail.Trim().ToLowerInvariant();
+
+                    var emailAlreadyExists = await _context.Users
+                        .AnyAsync(user =>
+                            user.Email.ToLower() == normalizedEmail);
+
+                    if (emailAlreadyExists)
+                    {
+                        ModelState.AddModelError(
+                            nameof(viewModel.NewCustomerEmail),
+                            "An account with this email already exists. Select the existing customer instead.");
+                    }
+                }
             }
 
+            // Load the selected active site and its pricing information.
             var site = await _context.Sites
                 .AsNoTracking()
-                .Include(site => site.SiteType)
-                .FirstOrDefaultAsync(site =>
-                    site.Id == viewModel.SiteId &&
-                    site.IsActive);
+                .Include(item => item.SiteType)
+                .FirstOrDefaultAsync(item =>
+                    item.Id == viewModel.SiteId &&
+                    item.IsActive);
 
             if (site is null)
             {
@@ -196,6 +286,7 @@ namespace RVPark.Controllers
                     "The selected site does not have pricing information.");
             }
 
+            // Stripe is reserved for the online checkout workflow.
             if (viewModel.PaymentMethod == PaymentMethod.Stripe)
             {
                 ModelState.AddModelError(
@@ -203,6 +294,7 @@ namespace RVPark.Controllers
                     "Stripe cannot be used for a manual payment.");
             }
 
+            // Prevent double-booking the selected site.
             if (site is not null &&
                 viewModel.EndDate.Date > viewModel.StartDate.Date)
             {
@@ -222,6 +314,7 @@ namespace RVPark.Controllers
                 }
             }
 
+            // Reload dropdown values before returning an invalid form.
             if (!ModelState.IsValid)
             {
                 await PopulateEmployeeCreateOptionsAsync(
@@ -232,70 +325,101 @@ namespace RVPark.Controllers
                 return View(viewModel);
             }
 
-            // Calculate the number of nights and total cost.
+            // Calculate the total site charge.
             var numberOfNights =
                 (viewModel.EndDate.Date - viewModel.StartDate.Date).Days;
 
             var nightlyRate = site!.SiteType!.Price;
             var totalAmount = nightlyRate * numberOfNights;
 
-            // Create the reservation record.
-            var reservation = new Reservation
-            {
-                ReservationNumber = GenerateReservationNumber(),
-                CustomerId = viewModel.CustomerId,
-                SiteId = viewModel.SiteId,
-                StartDate = viewModel.StartDate.Date,
-                EndDate = viewModel.EndDate.Date,
-                AdultCount = viewModel.AdultCount,
-                ChildCount = viewModel.ChildCount,
-                PetCount = viewModel.PetCount,
-                SpecialRequestsOrNotes = viewModel.SpecialRequestsOrNotes,
-                Status = ReservationStatus.Confirmed,
-                CreatedAt = DateTime.UtcNow
-            };
+            // Use the existing customer ID when one was selected.
+            // A new customer's ID will be assigned after that record is saved.
+            var customerId = existingCustomer?.Id ?? 0;
 
-            // Create the site-charge bill.
-            var bill = new Bill
-            {
-                Type = BillType.SiteCharge,
-                Description =
-                    $"{numberOfNights} night(s) at Site {site.SiteNumber}",
-                Amount = totalAmount,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            // Create the manual payment.
-            var payment = new Payment
-            {
-                PaymentMethod = viewModel.PaymentMethod,
-                StripeTransactionId = null,
-                Notes = viewModel.PaymentNotes,
-                Amount = totalAmount,
-                PaidAt = DateTime.UtcNow
-            };
-
-            // Keep all three database operations together.
+            // Keep customer, reservation, bill, and payment creation together.
+            // If one save fails, the entire operation is rolled back.
             await using var databaseTransaction =
                 await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // Save first so the reservation receives its generated ID.
+                // Create a new customer account when the employee did not
+                // select an existing customer.
+                if (existingCustomer is null)
+                {
+                    var newCustomer = new User
+                    {
+                        FirstName = viewModel.NewCustomerFirstName!.Trim(),
+                        LastName = viewModel.NewCustomerLastName!.Trim(),
+                        Email = viewModel.NewCustomerEmail!.Trim(),
+                        Phone = viewModel.NewCustomerPhone!.Trim(),
+                        AccessLevel = AccessLevel.Customer,
+                        IsLocked = false,
+
+                        // Temporary value used until the project's account setup
+                        // or password-reset workflow is connected.
+                        PasswordHash = $"TEMP-{Guid.NewGuid():N}",
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.Users.Add(newCustomer);
+                    await _context.SaveChangesAsync();
+
+                    customerId = newCustomer.Id;
+                }
+
+                // Create the confirmed walk-in reservation.
+                var reservation = new Reservation
+                {
+                    ReservationNumber = GenerateReservationNumber(),
+                    CustomerId = customerId,
+                    SiteId = viewModel.SiteId,
+                    StartDate = viewModel.StartDate.Date,
+                    EndDate = viewModel.EndDate.Date,
+                    AdultCount = viewModel.AdultCount,
+                    ChildCount = viewModel.ChildCount,
+                    PetCount = viewModel.PetCount,
+                    SpecialRequestsOrNotes =
+                        viewModel.SpecialRequestsOrNotes,
+                    Status = ReservationStatus.Confirmed,
+                    CreatedAt = DateTime.UtcNow
+                };
+
                 _context.Reservations.Add(reservation);
                 await _context.SaveChangesAsync();
 
-                // Connect the bill to the reservation.
-                bill.ReservationId = reservation.Id;
+                // Create the site-charge bill linked to the reservation.
+                var bill = new Bill
+                {
+                    ReservationId = reservation.Id,
+                    Type = BillType.SiteCharge,
+                    Description =
+                        $"{numberOfNights} night(s) at Site {site.SiteNumber}",
+                    Amount = totalAmount,
+                    CreatedAt = DateTime.UtcNow
+                };
+
                 _context.Bills.Add(bill);
                 await _context.SaveChangesAsync();
 
-                // Connect the payment to the bill.
-                payment.BillId = bill.Id;
+                // Record the employee-processed manual payment.
+                var payment = new Payment
+                {
+                    BillId = bill.Id,
+                    PaymentMethod = viewModel.PaymentMethod,
+                    StripeTransactionId = null,
+                    Notes = viewModel.PaymentNotes,
+                    Amount = totalAmount,
+                    PaidAt = DateTime.UtcNow
+                };
+
                 _context.Payments.Add(payment);
                 await _context.SaveChangesAsync();
 
                 await databaseTransaction.CommitAsync();
+
+                TempData["SuccessMessage"] =
+                    $"Reservation {reservation.ReservationNumber} was created successfully.";
             }
             catch
             {
@@ -303,13 +427,10 @@ namespace RVPark.Controllers
                 throw;
             }
 
-            TempData["SuccessMessage"] =
-                $"Reservation {reservation.ReservationNumber} was created successfully.";
-
             return RedirectToAction(nameof(Index));
         }
 
-        // Placeholder for Public Customer Edit View
+        // Temporary public customer edit page used for UI development.
         [HttpGet]
         public IActionResult EditMyTrip(int id)
         {
@@ -320,29 +441,43 @@ namespace RVPark.Controllers
                 StartDate = DateTime.Now.AddDays(10),
                 EndDate = DateTime.Now.AddDays(14)
             };
+
             return View(mockReservation);
         }
 
+        // Returns active sites that do not overlap another reservation.
         [HttpGet]
-        public async Task<IActionResult> GetAvailableSites(DateTime startDate, DateTime endDate, int currentReservationId)
+        public async Task<IActionResult> GetAvailableSites(
+            DateTime startDate,
+            DateTime endDate,
+            int currentReservationId)
         {
             var overlappingReservations = await _context.Reservations
-                .Where(r => r.Id != currentReservationId && r.Status != RVPark.Models.ReservationStatus.Cancelled)
-                .Where(r => startDate < r.EndDate && endDate > r.StartDate)
-                .Select(r => r.SiteId)
+                .Where(reservation =>
+                    reservation.Id != currentReservationId &&
+                    reservation.Status != ReservationStatus.Cancelled)
+                .Where(reservation =>
+                    startDate < reservation.EndDate &&
+                    endDate > reservation.StartDate)
+                .Select(reservation => reservation.SiteId)
                 .ToListAsync();
 
             var availableSites = await _context.Sites
-                .Where(s => s.IsActive && !overlappingReservations.Contains(s.Id))
-                .Select(s => new {
-                    id = s.Id,
-                    text = s.SiteNumber + " - Available"
+                .Where(site =>
+                    site.IsActive &&
+                    !overlappingReservations.Contains(site.Id))
+                .Select(site => new
+                {
+                    id = site.Id,
+                    text = site.SiteNumber + " - Available"
                 })
                 .ToListAsync();
 
             return Json(availableSites);
         }
 
+        // Populates the customer, site, and payment-method dropdowns used by
+        // the employee walk-in reservation form.
         private async Task PopulateEmployeeCreateOptionsAsync(
             int? selectedCustomerId = null,
             int? selectedSiteId = null,
@@ -359,7 +494,8 @@ namespace RVPark.Controllers
                 .Select(customer => new SelectListItem
                 {
                     Value = customer.Id.ToString(),
-                    Text = $"{customer.LastName}, {customer.FirstName} — {customer.Email}",
+                    Text =
+                        $"{customer.LastName}, {customer.FirstName} — {customer.Email}",
                     Selected = customer.Id == selectedCustomerId
                 })
                 .ToList();
@@ -389,6 +525,7 @@ namespace RVPark.Controllers
                 .ToList();
         }
 
+        // Generates a readable reservation number with a date and random suffix.
         private static string GenerateReservationNumber()
         {
             var randomPart = Guid.NewGuid()
