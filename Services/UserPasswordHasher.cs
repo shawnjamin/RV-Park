@@ -13,15 +13,6 @@ public sealed class UserPasswordHasher : IPasswordHasher<User>
         return passwordHasher.HashPassword(user, password);
     }
 
-    // Pulls the already hashed password from the User
-    public PasswordVerificationResult VerifyHashedPassword(
-        User user,
-        string providedPassword)
-    {
-        return passwordHasher.VerifyHashedPassword(user, user.PasswordHash, providedPassword);
-    }
-
-    // Requires the hashed password to be input manually
     public PasswordVerificationResult VerifyHashedPassword(
         User user,
         string hashedPassword,

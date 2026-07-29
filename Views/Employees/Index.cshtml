@@ -1,4 +1,4 @@
-@model IEnumerable<RVPark.Models.User>
+@model IEnumerable<RVPark.Models.Employee>
 
 @{
     ViewData["Title"] = "Employee Accounts";
@@ -39,7 +39,7 @@
                             <td class="fw-bold">@employee.FirstName @employee.LastName</td>
 
                             <!-- Email comes from the related User model -->
-                            <td>@employee.AccessLevel</td>
+                            <td>@employee.User.Email</td>
 
                             <td>@employee.AccessLevel</td>
 

@@ -213,32 +213,31 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private static async Task<Dictionary<string, User>> SeedCustomersAsync(
+    private static async Task<Dictionary<string, Customer>> SeedCustomersAsync(
         ApplicationDbContext context,
         IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken)
     {
         var seedCustomers = new[]
         {
-            new UserSeed("customer.alex@example.test", "1234567890", "Alex", "Rivera", AccessLevel.Customer, false),
-            new UserSeed("customer.jordan@example.test", "4743729384", "Jordan", "Lee", AccessLevel.Customer, false),
-            new UserSeed("customer.taylor@example.test", "1203948374", "Taylor", "Morgan", AccessLevel.Customer, false)
+            new CustomerSeed("customer.alex@example.test", "Alex", "Rivera", "555-0101"),
+            new CustomerSeed("customer.jordan@example.test", "Jordan", "Lee", "555-0102"),
+            new CustomerSeed("customer.taylor@example.test", "Taylor", "Morgan", "555-0103")
         };
 
         foreach (var seedCustomer in seedCustomers)
         {
             var user = await EnsureUserAsync(context, seedCustomer.Email, passwordHasher, cancellationToken);
 
-            if (!await context.Users.AnyAsync(customer => customer.Id == user.Id, cancellationToken))
+            if (!await context.Customers.AnyAsync(customer => customer.Id == user.Id, cancellationToken))
             {
-                context.Users.Add(new User
+                context.Customers.Add(new Customer
                 {
-                    Email = seedCustomer.Email,
-                    Phone = seedCustomer.Phone,
+                    Id = user.Id,
                     FirstName = seedCustomer.FirstName,
                     LastName = seedCustomer.LastName,
-                    AccessLevel = seedCustomer.AccessLevel,
-                    IsLocked = seedCustomer.IsLocked
+                    Phone = seedCustomer.Phone,
+                    Email = seedCustomer.Email
                 });
             }
         }
@@ -247,11 +246,10 @@ public static class DatabaseSeeder
 
         var seedCustomerEmails = seedCustomers.Select(seed => seed.Email).ToArray();
 
-        var test = await context.Users
-            .Where(customer => seedCustomerEmails.Contains(customer.Email))
-            .ToDictionaryAsync(customer => customer.Email, cancellationToken);
-
-        return test;
+        return await context.Customers
+            .Include(customer => customer.User)
+            .Where(customer => seedCustomerEmails.Contains(customer.User.Email))
+            .ToDictionaryAsync(customer => customer.User.Email, cancellationToken);
     }
 
     private static async Task SeedEmployeesAsync(
@@ -261,25 +259,24 @@ public static class DatabaseSeeder
     {
         var seedEmployees = new[]
         {
-            new UserSeed("admin.avery@example.test", "1111111111", "Avery", "Brooks", AccessLevel.Admin, false),
-            new UserSeed("manager.casey@example.test", "2222222222", "Casey", "Nguyen", AccessLevel.Manager, false),
-            new UserSeed("staff.riley@example.test", "3333333333", "Riley", "Patel", AccessLevel.Employee, false)
+            new EmployeeSeed("admin.avery@example.test", "Avery", "Brooks", EmployeeAccessLevel.Admin),
+            new EmployeeSeed("manager.casey@example.test", "Casey", "Nguyen", EmployeeAccessLevel.Manager),
+            new EmployeeSeed("staff.riley@example.test", "Riley", "Patel", EmployeeAccessLevel.Staff)
         };
 
         foreach (var seedEmployee in seedEmployees)
         {
             var user = await EnsureUserAsync(context, seedEmployee.Email, passwordHasher, cancellationToken);
 
-            if (!await context.Users.AnyAsync(employee => employee.Id == user.Id, cancellationToken))
+            if (!await context.Employees.AnyAsync(employee => employee.Id == user.Id, cancellationToken))
             {
-                context.Users.Add(new User
+                context.Employees.Add(new Employee
                 {
-                    Email = seedEmployee.Email,
-                    Phone = seedEmployee.Phone,
+                    Id = user.Id,
                     FirstName = seedEmployee.FirstName,
                     LastName = seedEmployee.LastName,
                     AccessLevel = seedEmployee.AccessLevel,
-                    IsLocked = seedEmployee.IsLocked
+                    IsLocked = false
                 });
             }
         }
@@ -289,7 +286,7 @@ public static class DatabaseSeeder
 
     private static async Task<Dictionary<string, Reservation>> SeedReservationsAsync(
         ApplicationDbContext context,
-        IReadOnlyDictionary<string, User> customers,
+        IReadOnlyDictionary<string, Customer> customers,
         IReadOnlyDictionary<string, Site> sites,
         CancellationToken cancellationToken)
     {
@@ -585,7 +582,6 @@ public static class DatabaseSeeder
     {
         var existingUser = await context.Users.FirstOrDefaultAsync(user => user.Email == email, cancellationToken);
 
-        // Hash password and return existing user
         if (existingUser is not null)
         {
             if (existingUser.PasswordHash == PlaceholderPasswordHash)
@@ -597,16 +593,10 @@ public static class DatabaseSeeder
             return existingUser;
         }
 
-        // Otherwise create a new user, then hash password and return
         var user = new User
         {
-            Email = "test.email@test.com",
-            Phone = "9999999999",
-            FirstName = "Test",
-            LastName = "User",
-            CreatedAt = new DateTime(2026, 7, 1, 12, 0, 0),
-            AccessLevel = AccessLevel.Customer,
-            IsLocked = false
+            Email = email,
+            CreatedAt = new DateTime(2026, 7, 1, 12, 0, 0)
         };
 
         user.PasswordHash = passwordHasher.HashPassword(user, SeedPassword);
@@ -617,8 +607,9 @@ public static class DatabaseSeeder
         return user;
     }
 
-    private sealed record UserSeed(string Email, string Phone, string FirstName, string LastName, AccessLevel AccessLevel, bool IsLocked);
-    
+    private sealed record CustomerSeed(string Email, string FirstName, string LastName, string Phone);
+
+    private sealed record EmployeeSeed(string Email, string FirstName, string LastName, EmployeeAccessLevel AccessLevel);
 
     private sealed record BillSeed(
         string Key,

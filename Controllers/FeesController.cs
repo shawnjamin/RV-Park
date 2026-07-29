@@ -27,7 +27,7 @@ public class FeesController(ApplicationDbContext context) : Controller
         var fees = await context.Bills
             .AsNoTracking()
             .Include(bill => bill.Reservation)
-                .ThenInclude(reservation => reservation!.User)
+                .ThenInclude(reservation => reservation!.Customer)
             .Where(bill => bill.Type != BillType.SiteCharge)
             .OrderByDescending(bill => bill.CreatedAt)
             .ToListAsync();
@@ -52,7 +52,7 @@ public class FeesController(ApplicationDbContext context) : Controller
         var fee = await context.Bills
             .AsNoTracking()
             .Include(bill => bill.Reservation)
-                .ThenInclude(reservation => reservation!.User)
+                .ThenInclude(reservation => reservation!.Customer)
             .FirstOrDefaultAsync(bill => bill.Id == id && bill.Type != BillType.SiteCharge);
 
         // Return a 404 response if the fee does not exist.
@@ -231,7 +231,7 @@ public class FeesController(ApplicationDbContext context) : Controller
         var fee = await context.Bills
             .AsNoTracking()
             .Include(bill => bill.Reservation)
-                .ThenInclude(reservation => reservation!.User)
+                .ThenInclude(reservation => reservation!.Customer)
             .FirstOrDefaultAsync(bill => bill.Id == id && bill.Type != BillType.SiteCharge);
 
         // Return 404 if the fee doesn't exist.
@@ -290,12 +290,12 @@ public class FeesController(ApplicationDbContext context) : Controller
         // containing the reservation number and customer's name.
         var reservations = await context.Reservations
             .AsNoTracking()
-            .Include(reservation => reservation.User)
+            .Include(reservation => reservation.Customer)
             .OrderBy(reservation => reservation.ReservationNumber)
             .Select(reservation => new
             {
                 reservation.Id,
-                DisplayName = $"{reservation.ReservationNumber} - {reservation.User!.FirstName} {reservation.User.LastName}"
+                DisplayName = $"{reservation.ReservationNumber} - {reservation.Customer!.FirstName} {reservation.Customer.LastName}"
             })
             .ToListAsync();
 

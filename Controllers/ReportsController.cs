@@ -48,7 +48,7 @@ public class ReportsController(ApplicationDbContext context) : Controller
         // displayed in the final report.
         var reservations = await context.Reservations
             .AsNoTracking()
-            .Include(reservation => reservation.User)
+            .Include(reservation => reservation.Customer)
             .Include(reservation => reservation.Site)
             .Where(reservation =>
                 reservation.StartDate.Date <= endDate.Value.Date &&
@@ -69,9 +69,9 @@ public class ReportsController(ApplicationDbContext context) : Controller
 
                     // Combine the customer's first and last names while
                     // removing unnecessary spaces if either value is missing.
-                    CustomerName = $"{reservation.User?.FirstName} {reservation.User?.LastName}".Trim(),
-                    Phone = reservation.User?.Phone,
-                    Email = reservation.User?.Email,
+                    CustomerName = $"{reservation.Customer?.FirstName} {reservation.Customer?.LastName}".Trim(),
+                    Phone = reservation.Customer?.Phone,
+                    Email = reservation.Customer?.Email,
 
                     // Display a fallback value if no site has been assigned.
                     SiteNumber = reservation.Site?.SiteNumber ?? "Unassigned",

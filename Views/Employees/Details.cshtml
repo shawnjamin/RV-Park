@@ -1,4 +1,4 @@
-@model RVPark.Models.User
+@model RVPark.Models.Employee
 
 @{
     ViewData["Title"] = "Employee Details";
@@ -20,7 +20,7 @@
 
             <!-- Email is stored on the related User record -->
             <dt class="col-sm-3">Email</dt>
-            <dd class="col-sm-9">@Model.Email</dd>
+            <dd class="col-sm-9">@Model.User.Email</dd>
 
             <dt class="col-sm-3">Access Level</dt>
             <dd class="col-sm-9">@Model.AccessLevel</dd>
@@ -40,7 +40,7 @@
 
             <!-- CreatedAt is stored on the related User record -->
             <dt class="col-sm-3">Created</dt>
-            <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("MM/dd/yyyy")</dd>
+            <dd class="col-sm-9">@Model.User.CreatedAt.ToLocalTime().ToString("MM/dd/yyyy")</dd>
         </dl>
 
         <hr />

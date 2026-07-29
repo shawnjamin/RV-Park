@@ -20,7 +20,6 @@ builder.Services.AddControllersWithViews();
 
 // Registers PasswordHasher which can be accessed through Dependency Injection
 builder.Services.AddScoped<IPasswordHasher<User>, UserPasswordHasher>();
-builder.Services.AddTransient<UserPasswordHasher>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
