@@ -40,15 +40,25 @@
                                     </div>
                                     <div>
                                         <small class="text-muted d-block">Status</small>
-                                        <span class="badge bg-success">@res.Status</span>
+                                        @if (res.Status == RVPark.Models.ReservationStatus.Cancelled)
+                                        {
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">@res.Status</span>
+                                        }
                                     </div>
                                 </div>
                             </div>
                             
-                            @* Action buttons *@
+                            @* Action buttons - Hides if the trip is already cancelled *@
                             <div class="col-md-4 text-md-end">
-                                <a asp-action="EditMyTrip" asp-route-id="@res.Id" class="btn btn-outline-primary mb-2 mb-md-0 me-md-2">Modify</a>
-                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal-@res.Id">Cancel</button>
+                                @if (res.Status != RVPark.Models.ReservationStatus.Cancelled)
+                                {
+                                    <a asp-action="EditMyTrip" asp-route-id="@res.Id" class="btn btn-outline-primary mb-2 mb-md-0 me-md-2">Modify</a>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal-@res.Id">Cancel</button>
+                                }
                             </div>
                             
                         </div>

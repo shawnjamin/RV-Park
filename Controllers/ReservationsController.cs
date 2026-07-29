@@ -474,43 +474,27 @@ namespace RVPark.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
-        public async Task<IActionResult> EditMyTrip(int id, [Bind("Id,StartDate,EndDate")] Reservation updateParams)
+        public async Task<IActionResult> EditMyTrip(int id, [Bind("StartDate,EndDate")] Reservation updateParams)
         {
-            if (id != updateParams.Id)
-            {
-                return NotFound();
-            }
-
+            // Fetch the tracked entity directly
             var reservation = await _context.Reservations.FindAsync(id);
 
-            if (reservation == null)
+            if (reservation != null)
             {
-                return NotFound();
-            }
+                // Modify the tracked properties
+                reservation.StartDate = updateParams.StartDate;
+                reservation.EndDate = updateParams.EndDate;
 
-            // Update the dates
-            reservation.StartDate = updateParams.StartDate;
-            reservation.EndDate = updateParams.EndDate;
-
-            try
-            {
-                _context.Update(reservation);
+                // Let EF Core automatically detect the changes and save them
                 await _context.SaveChangesAsync();
                 
                 TempData["SuccessMessage"] = "Trip dates successfully updated!";
-                return RedirectToAction(nameof(MyReservations));
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ReservationExists(reservation.Id))
-                {
-                    return NotFound();
-                }
-                throw;
-            }
+
+            return RedirectToAction(nameof(MyReservations));
         }
 
-        // Cancels a customer's reservation and redirects back to My Trips
+        // POST: Cancels a customer's reservation
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
@@ -518,12 +502,12 @@ namespace RVPark.Controllers
         {
             var reservation = await _context.Reservations.FindAsync(id);
 
-            if (reservation is not null)
+            if (reservation != null)
             {
                 reservation.Status = ReservationStatus.Cancelled;
                 reservation.CancelledAt = DateTime.UtcNow;
 
-                _context.Update(reservation);
+                // Let EF Core automatically detect the changes and save them
                 await _context.SaveChangesAsync();
                 
                 TempData["SuccessMessage"] = $"Reservation {reservation.ReservationNumber} has been cancelled.";
