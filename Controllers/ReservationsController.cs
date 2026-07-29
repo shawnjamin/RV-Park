@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace RVPark.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Customer, Employee, Manager, Admin")]
     public class ReservationsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,7 +21,6 @@ namespace RVPark.Controllers
         // Displays the public customer reservation dashboard.
         // Public customer dashboard
         [HttpGet]
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> MyReservations([FromServices] ApplicationDbContext _context)
         {
             // Read the Email claim out of the newly implemented Cookie
@@ -51,8 +50,6 @@ namespace RVPark.Controllers
             return View(myTrips);
         }
 
-        // GET: Reservations (Includes the Search logic from the rubric)
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         // Displays all reservations and optionally filters them by reservation
         // number or customer name.
         public async Task<IActionResult> Index(string searchQuery)
@@ -79,9 +76,7 @@ namespace RVPark.Controllers
                 .ToListAsync());
         }
 
-
-        // GET: Reservations/Edit/5
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        // Loads an existing reservation for editing.
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null)
@@ -112,8 +107,6 @@ namespace RVPark.Controllers
         // Saves editable reservation fields.
         [HttpPost]
         [ValidateAntiForgeryToken]
-
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> Edit(
             int id,
             [Bind("Id,StartDate,EndDate,SiteId")] Reservation updateParams)
@@ -155,7 +148,6 @@ namespace RVPark.Controllers
         // Cancels a reservation without deleting it from the database.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> Cancel(int id)
         {
             var reservation = await _context.Reservations.FindAsync(id);
@@ -180,7 +172,6 @@ namespace RVPark.Controllers
 
         // Loads the employee walk-in reservation form.
         [HttpGet]
-        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> EmployeeCreate()
         {
             await PopulateEmployeeCreateOptionsAsync();
@@ -455,7 +446,6 @@ namespace RVPark.Controllers
 
         // Temporary public customer edit page used for UI development.
         [HttpGet]
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public IActionResult EditMyTrip(int id)
         {
             var mockReservation = new Reservation
