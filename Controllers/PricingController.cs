@@ -6,7 +6,7 @@ using RVPark.Models;
 
 namespace RVPark.Controllers
 {
-    [Authorize(Roles = "Admin, Manager")]
+    [Authorize]
     public class PricingController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -37,6 +37,7 @@ namespace RVPark.Controllers
         }
 
         // GET: Pricing/Create
+        [Authorize(Roles = "Manager, Admin")]
         public IActionResult Create()
         {
             return View();
@@ -45,6 +46,7 @@ namespace RVPark.Controllers
         // POST: Pricing/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> Create([Bind("Id,Name,Description,Price,StartDate,EndDate,IsActive")] SiteType siteType)
         {
             if (ModelState.IsValid)
@@ -57,6 +59,7 @@ namespace RVPark.Controllers
         }
 
         // GET: Pricing/Edit
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -70,6 +73,7 @@ namespace RVPark.Controllers
         // POST: Pricing/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Price,StartDate,EndDate,IsActive")] SiteType siteType)
         {
             if (id != siteType.Id) return NotFound();
@@ -94,6 +98,7 @@ namespace RVPark.Controllers
         // POST: Pricing/Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var siteType = await _context.SiteTypes.FindAsync(id);

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace RVPark.Controllers
 {
-    [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+    [Authorize]
     public class ReservationsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -20,6 +20,7 @@ namespace RVPark.Controllers
 
         // Public customer dashboard
         [HttpGet]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> MyReservations([FromServices] ApplicationDbContext _context)
         {
             // Read the Email claim out of the newly implemented Cookie
@@ -50,6 +51,7 @@ namespace RVPark.Controllers
         }
 
         // GET: Reservations (Includes the Search logic from the rubric)
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> Index(string searchQuery)
         {
             var reservations = _context.Reservations
@@ -71,6 +73,7 @@ namespace RVPark.Controllers
         }
 
         // GET: Reservations/Edit/5
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -91,6 +94,7 @@ namespace RVPark.Controllers
         // POST: Reservations/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,StartDate,EndDate,SiteId")] Reservation updateParams)
         {
             if (id != updateParams.Id) return NotFound();
@@ -120,6 +124,7 @@ namespace RVPark.Controllers
         // POST: Reservations/Cancel
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> Cancel(int id)
         {
             var reservation = await _context.Reservations.FindAsync(id);
@@ -142,6 +147,7 @@ namespace RVPark.Controllers
 
         // Placeholder for Employee Walk-in View
         [HttpGet]
+        [Authorize(Roles = "Manager, Admin")]
         public IActionResult EmployeeCreate()
         {
             return View();
@@ -149,6 +155,7 @@ namespace RVPark.Controllers
 
         // Placeholder for Public Customer Edit View
         [HttpGet]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public IActionResult EditMyTrip(int id)
         {
             var mockReservation = new Reservation
