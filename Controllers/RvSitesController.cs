@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace RVPark.Controllers
 {
-    [Authorize(Roles = "Admin, Manager")]
+    [Authorize]
     public class RvSitesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -103,6 +103,7 @@ namespace RVPark.Controllers
         }
 
         // GET: RvSites/Create
+        [Authorize(Roles = "Manager, Admin")]
         public IActionResult Create()
         {
             ViewBag.SiteTypeId = new SelectList(_context.SiteTypes.Where(st => st.IsActive), "Id", "Name");
@@ -112,6 +113,7 @@ namespace RVPark.Controllers
         // POST: RvSites/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> Create([Bind("Id,SiteNumber,SiteTypeId,HookupType,SizeSqft,MaxRvLengthFt,Notes,IsActive")] Site site)
         {
             if (ModelState.IsValid)
@@ -125,6 +127,7 @@ namespace RVPark.Controllers
         }
 
         // GET: RvSites/Edit/5
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -139,6 +142,7 @@ namespace RVPark.Controllers
         // POST: RvSites/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,SiteNumber,SiteTypeId,HookupType,SizeSqft,MaxRvLengthFt,Notes,IsActive")] Site site)
         {
             if (id != site.Id) return NotFound();
@@ -164,6 +168,7 @@ namespace RVPark.Controllers
         // POST: RvSites/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var site = await _context.Sites.FindAsync(id);
@@ -182,6 +187,7 @@ namespace RVPark.Controllers
 
 
         // GET: RvSites/ManagePhotos/5
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> ManagePhotos(int? id)
         {
             if (id == null) return NotFound();
@@ -198,6 +204,7 @@ namespace RVPark.Controllers
         // POST: RvSites/UploadPhoto
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> UploadPhoto(int SiteId, IFormFile imageFile, string caption)
         {
             var site = await _context.Sites.FindAsync(SiteId);
@@ -233,6 +240,7 @@ namespace RVPark.Controllers
         // POST: RvSites/DeletePhoto
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Manager, Admin")]
         public async Task<IActionResult> DeletePhoto(int photoId, int siteId)
         {
             var photo = await _context.SitePhotos.FindAsync(photoId);
