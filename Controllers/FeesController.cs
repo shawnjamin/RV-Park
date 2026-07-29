@@ -12,7 +12,7 @@ namespace RVPark.Controllers;
 /// Site charges are excluded because they are managed separately from
 /// additional reservation fees.
 /// </summary>
-[Authorize]
+[Authorize(Roles = "Admin, Manager")]
 public class FeesController(ApplicationDbContext context) : Controller
 {
 
@@ -75,7 +75,6 @@ public class FeesController(ApplicationDbContext context) : Controller
     /// <summary>
     /// Displays the form used to create a new reservation fee.
     /// </summary>
-    [Authorize(Roles = "Manager, Admin")]
     public async Task<IActionResult> Create()
     {
         // Populate the reservation and fee type dropdown lists.
@@ -90,7 +89,6 @@ public class FeesController(ApplicationDbContext context) : Controller
     /// <param name="fee">The fee information submitted by the user.</param>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Manager, Admin")]
     public async Task<IActionResult> Create([Bind("ReservationId,Type,Description,Amount")] Bill fee)
     {
         // Site charges are not considered additional reservation fees
@@ -135,7 +133,6 @@ public class FeesController(ApplicationDbContext context) : Controller
     /// </summary>
     /// <param name="id">The ID of the fee to edit.</param>
     /// <returns></returns>
-    [Authorize(Roles = "Manager, Admin")]
     public async Task<IActionResult> Edit(int? id)
     {
         // A fee can't be edited without an ID.
@@ -168,7 +165,6 @@ public class FeesController(ApplicationDbContext context) : Controller
     /// <returns></returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Manager, Admin")]
     public async Task<IActionResult> Edit(int id, [Bind("Id,ReservationId,Type,Description,Amount,CreatedAt")] Bill fee)
     {
         // This makes sure that the route ID matches the fee submitted in the form
@@ -226,7 +222,6 @@ public class FeesController(ApplicationDbContext context) : Controller
     /// Displays the confirmation page for deleting a reservation fee.
     /// </summary>
     /// <param name="id">The ID of the fee to be deleted</param>
-    [Authorize(Roles = "Manager, Admin")]
     public async Task<IActionResult> Delete(int? id)
     {
         // A fee can't be deleted with no ID.
@@ -259,7 +254,6 @@ public class FeesController(ApplicationDbContext context) : Controller
     /// <returns></returns>
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Manager, Admin")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         // Get the fee being deleted.
