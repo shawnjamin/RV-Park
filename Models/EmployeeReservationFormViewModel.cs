@@ -4,21 +4,40 @@ namespace RVPark.Models;
 
 public class EmployeeReservationFormViewModel
 {
-    [Range(1, int.MaxValue, ErrorMessage = "Please select a customer.")]
-    [Display(Name = "Customer")]
-    public int CustomerId { get; set; }
+    [Display(Name = "Existing Customer")]
+    public int? CustomerId { get; set; } // Nullable in case walk-in does not have an ID yet (first time).
+
+    [StringLength(100)]
+    [Display(Name = "First Name")]
+    public string? NewCustomerFirstName { get; set; }
+
+    [StringLength(100)]
+    [Display(Name = "Last Name")]
+    public string? NewCustomerLastName { get; set; }
+
+    [EmailAddress]
+    [StringLength(255)]
+    [Display(Name ="Email")]
+    public string? NewCustomerEmail { get; set; }
+
+    [Phone]
+    [StringLength(30)]
+    [Display(Name = "Phone")]
+    public string? NewCustomerPhone { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Please select a site.")]
     [Display(Name = "Site")]
-public int SiteId { get; set; }
+    public int SiteId { get; set; }
 
     [Required]
-    [Display(Name = "Check-In")]
+    [DataType(DataType.Date)]
+    [Display(Name = "Check-In Date")]
     public DateTime StartDate { get; set; }
 
     [Required]
-    [Display(Name = "Check-Out")]
-    public DateTime EndDate { get; set; }
+    [DataType(DataType.Date)]
+    [Display(Name = "Check-Out Date")]
+    public DateTime EndDate { get; set; } = DateTime.Today.AddDays(1);
 
     [Range(1, int.MaxValue)]
     [Display(Name = "Adults")]
