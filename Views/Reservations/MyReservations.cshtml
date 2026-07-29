@@ -3,6 +3,10 @@
 @{
     ViewData["Title"] = "My Reservations";
     Layout = "_Layout";
+
+    // Split the data into Upcoming vs Past using today's date
+    var upcomingTrips = Model?.Where(r => r.StartDate.Date > DateTime.Today).OrderBy(r => r.StartDate).ToList() ?? new List<RVPark.Models.Reservation>();
+    var pastTrips = Model?.Where(r => r.StartDate.Date <= DateTime.Today).OrderByDescending(r => r.StartDate).ToList() ?? new List<RVPark.Models.Reservation>();
 }
 
 @* Page header *@
@@ -11,96 +15,147 @@
     <p class="text-muted">Manage your upcoming reservations and view past trips.</p>
 </div>
 
-@* Reservations list *@
-<div class="row g-4 mb-5">
-    
-    @* Check for data *@
-    @if (Model != null && Model.Any())
-    {
-        foreach (var res in Model)
-        {
-            <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <div class="row align-items-center">
-                            
-                            @* Trip details *@
-                            <div class="col-md-8">
-                                <h5 class="fw-bold mb-1">Site @res.Site?.SiteNumber</h5>
-                                <p class="text-muted mb-3">Reservation #@res.ReservationNumber</p>
-                                
-                                <div class="d-flex flex-wrap gap-4 mb-3 mb-md-0">
-                                    <div>
-                                        <small class="text-muted d-block">Check-In</small>
-                                        <span class="fw-bold">@res.StartDate.ToString("MMM dd, yyyy")</span>
-                                    </div>
-                                    <div>
-                                        <small class="text-muted d-block">Check-Out</small>
-                                        <span class="fw-bold">@res.EndDate.ToString("MMM dd, yyyy")</span>
-                                    </div>
-                                    <div>
-                                        <small class="text-muted d-block">Status</small>
-                                        @if (res.Status == RVPark.Models.ReservationStatus.Cancelled)
-                                        {
-                                            <span class="badge bg-danger">Cancelled</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-success">@res.Status</span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            @* Action buttons - Hides if the trip is already cancelled *@
-                            <div class="col-md-4 text-md-end">
-                                @if (res.Status != RVPark.Models.ReservationStatus.Cancelled)
-                                {
-                                    <a asp-action="EditMyTrip" asp-route-id="@res.Id" class="btn btn-outline-primary mb-2 mb-md-0 me-md-2">Modify</a>
-                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal-@res.Id">Cancel</button>
-                                }
-                            </div>
-                            
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            @* Cancel confirmation modal *@
-            <div class="modal fade" id="cancelModal-@res.Id" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title fw-bold">Cancel Reservation</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body p-4">
-                            <p class="fs-5">Are you sure you want to cancel reservation <strong>#@res.ReservationNumber</strong>?</p>
-                            <p class="text-muted small mb-0">Cancellation policies may apply. Once confirmed, this action cannot be undone and your site will be released to the public.</p>
-                        </div>
-                        <div class="modal-footer bg-light">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep Reservation</button>
-                            <form asp-action="CancelMyTrip" asp-route-id="@res.Id" method="post">
-                                <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    }
-    else
-    {
-        @* Empty state *@
+@if (!upcomingTrips.Any() && !pastTrips.Any())
+{
+    @* Empty state *@
+    <div class="row mb-5">
         <div class="col-12 text-center py-5">
             <div class="card border-0 shadow-sm py-5 bg-light">
                 <div class="card-body">
                     <i class="fa-solid fa-map-location-dot fs-1 text-secondary mb-3"></i>
-                    <h3 class="fw-bold">No upcoming trips</h3>
+                    <h3 class="fw-bold">No trips found</h3>
                     <p class="text-muted mb-4">You don't have any reservations on file yet. Ready for an adventure?</p>
                     <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg px-5">Find a Campsite</a>
                 </div>
             </div>
         </div>
+    </div>
+}
+else
+{
+    @* UPCOMING TRIPS SECTION *@
+    @if (upcomingTrips.Any())
+    {
+        <h4 class="fw-bold mb-3">Upcoming Trips</h4>
+        <div class="row g-4 mb-5">
+            @foreach (var res in upcomingTrips)
+            {
+                <div class="col-12">
+                    <div class="card shadow-sm border-0 border-start border-5 border-primary">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                
+                                @* Trip details *@
+                                <div class="col-md-8">
+                                    <h5 class="fw-bold mb-1">Site @res.Site?.SiteNumber</h5>
+                                    <p class="text-muted mb-3">Reservation #@res.ReservationNumber</p>
+                                    
+                                    <div class="d-flex flex-wrap gap-4 mb-3 mb-md-0">
+                                        <div>
+                                            <small class="text-muted d-block">Check-In</small>
+                                            <span class="fw-bold">@res.StartDate.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Check-Out</small>
+                                            <span class="fw-bold">@res.EndDate.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Status</small>
+                                            @if (res.Status == RVPark.Models.ReservationStatus.Cancelled)
+                                            {
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">@res.Status</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                @* Action buttons - Hidden if Cancelled *@
+                                <div class="col-md-4 text-md-end">
+                                    @if (res.Status != RVPark.Models.ReservationStatus.Cancelled)
+                                    {
+                                        <a asp-action="EditMyTrip" asp-route-id="@res.Id" class="btn btn-outline-primary mb-2 mb-md-0 me-md-2">Modify</a>
+                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal-@res.Id">Cancel</button>
+                                    }
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Cancel confirmation modal *@
+                <div class="modal fade" id="cancelModal-@res.Id" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title fw-bold">Cancel Reservation</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <p class="fs-5">Are you sure you want to cancel reservation <strong>#@res.ReservationNumber</strong>?</p>
+                                <p class="text-muted small mb-0">Cancellation policies may apply. Once confirmed, this action cannot be undone and your site will be released to the public.</p>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep Reservation</button>
+                                <form asp-action="CancelMyTrip" asp-route-id="@res.Id" method="post">
+                                    <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     }
-</div>
+
+    @* PAST TRIPS SECTION *@
+    @if (pastTrips.Any())
+    {
+        <h4 class="fw-bold mb-3 text-muted">Past Trips</h4>
+        <div class="row g-4 mb-5">
+            @foreach (var res in pastTrips)
+            {
+                <div class="col-12">
+                    @* Added opacity-75 and bg-light to visually separate past trips *@
+                    <div class="card shadow-sm border-0 opacity-75 bg-light">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-12">
+                                    <h5 class="fw-bold mb-1 text-muted">Site @res.Site?.SiteNumber</h5>
+                                    <p class="text-muted mb-3">Reservation #@res.ReservationNumber</p>
+                                    
+                                    <div class="d-flex flex-wrap gap-4">
+                                        <div>
+                                            <small class="text-muted d-block">Check-In</small>
+                                            <span class="text-muted">@res.StartDate.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Check-Out</small>
+                                            <span class="text-muted">@res.EndDate.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Status</small>
+                                            @if (res.Status == RVPark.Models.ReservationStatus.Cancelled)
+                                            {
+                                                <span class="badge bg-danger bg-opacity-75">Cancelled</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Completed</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                @* Notice: The entire Action Buttons column is intentionally omitted here! *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}

@@ -467,6 +467,13 @@ namespace RVPark.Controllers
                 return NotFound();
             }
 
+            // SERVER BLOCK: Do not allow loading the edit form for past/active trips
+            if (reservation.StartDate.Date <= DateTime.Today)
+            {
+                TempData["ErrorMessage"] = "Trips that have already started or passed cannot be modified.";
+                return RedirectToAction(nameof(MyReservations));
+            }
+
             return View(reservation);
         }
 
@@ -476,16 +483,27 @@ namespace RVPark.Controllers
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> EditMyTrip(int id, [Bind("StartDate,EndDate")] Reservation updateParams)
         {
-            // Fetch the tracked entity directly
+            // SERVER VALIDATION: Check-out must be AFTER check-in
+            if (updateParams.EndDate <= updateParams.StartDate)
+            {
+                TempData["ErrorMessage"] = "Check-out date must be after your Check-in date.";
+                return RedirectToAction(nameof(EditMyTrip), new { id = id });
+            }
+
             var reservation = await _context.Reservations.FindAsync(id);
 
             if (reservation != null)
             {
-                // Modify the tracked properties
+                // SERVER BLOCK: Double check they aren't hacking a past trip
+                if (reservation.StartDate.Date <= DateTime.Today)
+                {
+                    TempData["ErrorMessage"] = "Trips that have already started or passed cannot be modified.";
+                    return RedirectToAction(nameof(MyReservations));
+                }
+
                 reservation.StartDate = updateParams.StartDate;
                 reservation.EndDate = updateParams.EndDate;
 
-                // Let EF Core automatically detect the changes and save them
                 await _context.SaveChangesAsync();
                 
                 TempData["SuccessMessage"] = "Trip dates successfully updated!";
@@ -504,10 +522,16 @@ namespace RVPark.Controllers
 
             if (reservation != null)
             {
+                // SERVER BLOCK: Prevent cancelling a trip that already started
+                if (reservation.StartDate.Date <= DateTime.Today)
+                {
+                    TempData["ErrorMessage"] = "Trips that have already started or passed cannot be cancelled.";
+                    return RedirectToAction(nameof(MyReservations));
+                }
+
                 reservation.Status = ReservationStatus.Cancelled;
                 reservation.CancelledAt = DateTime.UtcNow;
 
-                // Let EF Core automatically detect the changes and save them
                 await _context.SaveChangesAsync();
                 
                 TempData["SuccessMessage"] = $"Reservation {reservation.ReservationNumber} has been cancelled.";
