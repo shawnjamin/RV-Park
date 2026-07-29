@@ -453,20 +453,83 @@ namespace RVPark.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Temporary public customer edit page used for UI development.
+        // GET: Load the real reservation for the customer to edit
         [HttpGet]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
-        public IActionResult EditMyTrip(int id)
+        public async Task<IActionResult> EditMyTrip(int id)
         {
-            var mockReservation = new Reservation
-            {
-                Id = id,
-                ReservationNumber = "RES-9999",
-                StartDate = DateTime.Now.AddDays(10),
-                EndDate = DateTime.Now.AddDays(14)
-            };
+            var reservation = await _context.Reservations
+                .Include(r => r.Site)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-            return View(mockReservation);
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            return View(reservation);
+        }
+
+        // POST: Save the customer's changes to the database
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        public async Task<IActionResult> EditMyTrip(int id, [Bind("Id,StartDate,EndDate")] Reservation updateParams)
+        {
+            if (id != updateParams.Id)
+            {
+                return NotFound();
+            }
+
+            var reservation = await _context.Reservations.FindAsync(id);
+
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            // Update the dates
+            reservation.StartDate = updateParams.StartDate;
+            reservation.EndDate = updateParams.EndDate;
+
+            try
+            {
+                _context.Update(reservation);
+                await _context.SaveChangesAsync();
+                
+                TempData["SuccessMessage"] = "Trip dates successfully updated!";
+                return RedirectToAction(nameof(MyReservations));
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ReservationExists(reservation.Id))
+                {
+                    return NotFound();
+                }
+                throw;
+            }
+        }
+
+        // Cancels a customer's reservation and redirects back to My Trips
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        public async Task<IActionResult> CancelMyTrip(int id)
+        {
+            var reservation = await _context.Reservations.FindAsync(id);
+
+            if (reservation is not null)
+            {
+                reservation.Status = ReservationStatus.Cancelled;
+                reservation.CancelledAt = DateTime.UtcNow;
+
+                _context.Update(reservation);
+                await _context.SaveChangesAsync();
+                
+                TempData["SuccessMessage"] = $"Reservation {reservation.ReservationNumber} has been cancelled.";
+            }
+
+            return RedirectToAction(nameof(MyReservations));
         }
 
         // Returns active sites that do not overlap another reservation.
