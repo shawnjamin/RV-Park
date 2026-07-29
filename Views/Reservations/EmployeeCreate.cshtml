@@ -1,142 +1,229 @@
-@model RVPark.Models.Reservation
+@model RVPark.Models.EmployeeReservationFormViewModel
 
 @{
     ViewData["Title"] = "Walk-In Reservation";
     Layout = "_AdminLayout";
 }
 
-@* Page header *@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="fw-bold">Walk-In Reservation</h2>
-        <p class="text-muted">Process a new reservation and manual payment for an in-person guest.</p>
+        <p class="text-muted">
+            Process a new reservation and manual payment for an in-person guest.
+        </p>
     </div>
-    <a asp-action="Index" class="btn btn-outline-secondary">Back to Dashboard</a>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        Back to Dashboard
+    </a>
 </div>
 
-@* Main form container *@
-<form asp-controller="Reservations" asp-action="EmployeeCreate" method="post">
+<form asp-controller="Reservations"
+      asp-action="EmployeeCreate"
+      method="post">
+
+    <div asp-validation-summary="ModelOnly"
+         class="alert alert-danger"></div>
+
     <div class="row g-4">
-        
-        @* Left column: Customer & Trip Details *@
+
+        <!-- Customer and trip information -->
         <div class="col-lg-8">
-            
-            @* Customer selection section *@
+
+            <!-- Customer selection -->
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold">1. Customer Information</h5>
+                    <h5 class="mb-0 fw-bold">
+                        1. Customer Information
+                    </h5>
                 </div>
+
                 <div class="card-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label fw-bold">Search Existing Customer</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Search by name, email, or phone...">
-                                <button class="btn btn-outline-primary" type="button">Lookup</button>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12 text-center mb-2">
-                            <span class="text-muted small">--- OR CREATE NEW ---</span>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="form-label">First Name</label>
-                            <input type="text" name="NewCustomer.FirstName" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" name="NewCustomer.LastName" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="NewCustomer.Email" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Phone</label>
-                            <input type="tel" name="NewCustomer.PhoneNumber" class="form-control" />
-                        </div>
-                    </div>
+                    <label asp-for="CustomerId"
+                           class="form-label fw-bold"></label>
+
+                    <select asp-for="CustomerId"
+                            asp-items="ViewBag.Customers"
+                            class="form-select">
+                        <option value="">
+                            -- Select an Existing Customer --
+                        </option>
+                    </select>
+
+                    <span asp-validation-for="CustomerId"
+                          class="text-danger"></span>
                 </div>
             </div>
 
-            @* Trip details section *@
+            <!-- Trip details -->
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold">2. Trip Details</h5>
+                    <h5 class="mb-0 fw-bold">
+                        2. Trip Details
+                    </h5>
                 </div>
+
                 <div class="card-body p-4">
                     <div class="row g-3">
+
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Check-In Date</label>
-                            <input type="date" asp-for="StartDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                            <label asp-for="StartDate"
+                                   class="form-label fw-bold"></label>
+
+                            <input asp-for="StartDate"
+                                   type="date"
+                                   class="form-control"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                            <span asp-validation-for="StartDate"
+                                  class="text-danger"></span>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Check-Out Date</label>
-                            <input type="date" asp-for="EndDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                            <label asp-for="EndDate"
+                                   class="form-label fw-bold"></label>
+
+                            <input asp-for="EndDate"
+                                   type="date"
+                                   class="form-control"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                            <span asp-validation-for="EndDate"
+                                  class="text-danger"></span>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Assign Site</label>
-                            <select asp-for="SiteId" class="form-select" required>
-                                <option value="">-- Select an Available Site --</option>
-                                @* Options populated by ViewBag in controller *@
-                                <option value="1">Site A1 (Full Hookup)</option>
-                                <option value="2">Site A2 (Water/Electric)</option>
+
+                        <div class="col-md-12">
+                            <label asp-for="SiteId"
+                                   class="form-label fw-bold"></label>
+
+                            <select asp-for="SiteId"
+                                    asp-items="ViewBag.Sites"
+                                    class="form-select">
+                                <option value="">
+                                    -- Select an Available Site --
+                                </option>
                             </select>
+
+                            <span asp-validation-for="SiteId"
+                                  class="text-danger"></span>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">RV Length (ft)</label>
-                            <input type="number" name="RvLength" class="form-control" />
+
+                        <div class="col-md-4">
+                            <label asp-for="AdultCount"
+                                   class="form-label"></label>
+
+                            <input asp-for="AdultCount"
+                                   type="number"
+                                   min="1"
+                                   class="form-control" />
+
+                            <span asp-validation-for="AdultCount"
+                                  class="text-danger"></span>
                         </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ChildCount"
+                                   class="form-label"></label>
+
+                            <input asp-for="ChildCount"
+                                   type="number"
+                                   min="0"
+                                   class="form-control" />
+
+                            <span asp-validation-for="ChildCount"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="PetCount"
+                                   class="form-label"></label>
+
+                            <input asp-for="PetCount"
+                                   type="number"
+                                   min="0"
+                                   class="form-control" />
+
+                            <span asp-validation-for="PetCount"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="SpecialRequestsOrNotes"
+                                   class="form-label"></label>
+
+                            <textarea asp-for="SpecialRequestsOrNotes"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Optional requests or reservation notes..."></textarea>
+
+                            <span asp-validation-for="SpecialRequestsOrNotes"
+                                  class="text-danger"></span>
+                        </div>
+
                     </div>
                 </div>
             </div>
-            
         </div>
 
-        @* Right column: Payment processing *@
+        <!-- Payment information -->
         <div class="col-lg-4">
             <div class="card shadow-sm border-0 bg-light">
                 <div class="card-header bg-dark text-white py-3">
-                    <h5 class="mb-0 fw-bold">3. Payment</h5>
+                    <h5 class="mb-0 fw-bold">
+                        3. Payment
+                    </h5>
                 </div>
+
                 <div class="card-body p-4">
-                    
-                    @* Cost breakdown *@
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Nightly Rate</span>
-                        <span>$45.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
-                        <span class="text-muted">Nights</span>
-                        <span>3</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <span class="fw-bold fs-5">Total Due</span>
-                        <strong class="fs-4 text-primary">$135.00</strong>
+
+                    <div class="alert alert-info">
+                        The total will be calculated from the selected site
+                        and reservation dates when the form is submitted.
                     </div>
 
-                    @* Manual payment method *@
                     <div class="mb-4">
-                        <label class="form-label fw-bold">Payment Method</label>
-                        <select name="PaymentMethod" class="form-select border-primary" required>
-                            <option value="">Select Method...</option>
-                            <option value="CreditCard_Manual">Credit Card (Manual Entry)</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Check">Check</option>
+                        <label asp-for="PaymentMethod"
+                               class="form-label fw-bold"></label>
+
+                        <select asp-for="PaymentMethod"
+                                asp-items="ViewBag.PaymentMethods"
+                                class="form-select border-primary">
+                            <option value="">
+                                -- Select Payment Method --
+                            </option>
                         </select>
+
+                        <span asp-validation-for="PaymentMethod"
+                              class="text-danger"></span>
                     </div>
 
-                    @* Transaction notes *@
                     <div class="mb-4">
-                        <label class="form-label">Transaction ID / Check #</label>
-                        <input type="text" name="TransactionReference" class="form-control" placeholder="Optional reference..." />
+                        <label asp-for="PaymentNotes"
+                               class="form-label"></label>
+
+                        <textarea asp-for="PaymentNotes"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Check number, terminal reference, or other notes..."></textarea>
+
+                        <span asp-validation-for="PaymentNotes"
+                              class="text-danger"></span>
                     </div>
 
-                    <button type="submit" class="btn btn-success btn-lg w-100">Process & Book</button>
+                    <button type="submit"
+                            class="btn btn-success btn-lg w-100">
+                        Process and Book
+                    </button>
                 </div>
             </div>
         </div>
-        
+
     </div>
 </form>
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

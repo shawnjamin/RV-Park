@@ -4,13 +4,13 @@ namespace RVPark.Models;
 
 public class EmployeeReservationFormViewModel
 {
-    [Required]
+    [Range(1, int.MaxValue, ErrorMessage = "Please select a customer.")]
     [Display(Name = "Customer")]
     public int CustomerId { get; set; }
 
-    [Required]
+    [Range(1, int.MaxValue, ErrorMessage = "Please select a site.")]
     [Display(Name = "Site")]
-    public int SiteId { get; set; }
+public int SiteId { get; set; }
 
     [Required]
     [Display(Name = "Check-In")]

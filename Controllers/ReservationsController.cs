@@ -131,32 +131,7 @@ namespace RVPark.Controllers
         [HttpGet]
         public async Task<IActionResult> EmployeeCreate()
         {
-            var customers = await _context.Users
-                .AsNoTracking()
-                .Where(user => user.AccessLevel == AccessLevel.Customer)
-                .OrderBy(user => user.LastName)
-                .ThenBy(user => user.FirstName)
-                .ToListAsync();
-
-            var activeSites = await _context.Sites
-                .AsNoTracking()
-                .Where(site => site.IsActive)
-                .OrderBy(site => site.SiteNumber)
-                .ToListAsync();
-
-            ViewBag.Customers = new SelectList(
-                customers,
-                "Id",
-                "Email");
-
-            ViewBag.Sites = new SelectList(
-                activeSites,
-                "Id",
-                "SiteNumber");
-
-            ViewBag.PaymentMethods = new SelectList(
-                Enum.GetValues<PaymentMethod>()
-                    .Where(method => method != PaymentMethod.Stripe));
+            await PopulateEmployeeCreateOptionsAsync();
 
             var viewModel = new EmployeeReservationFormViewModel
             {
@@ -166,7 +141,172 @@ namespace RVPark.Controllers
             };
 
             return View(viewModel);
+        }
 
+        // Creates a walk-in reservation with a manual payment.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EmployeeCreate(
+            EmployeeReservationFormViewModel viewModel)
+        {
+            if (viewModel.StartDate.Date < DateTime.Today)
+            {
+                ModelState.AddModelError(
+                    nameof(viewModel.StartDate),
+                    "The check-in date cannot be in the past.");
+            }
+
+            if (viewModel.EndDate.Date <= viewModel.StartDate.Date)
+            {
+                ModelState.AddModelError(
+                    nameof(viewModel.EndDate),
+                    "The check-out date must be after the check-in date.");
+            }
+
+            var customerExists = await _context.Users
+                .AsNoTracking()
+                .AnyAsync(user =>
+                    user.Id == viewModel.CustomerId &&
+                    user.AccessLevel == AccessLevel.Customer);
+
+            if (!customerExists)
+            {
+                ModelState.AddModelError(
+                    nameof(viewModel.CustomerId),
+                    "The selected customer could not be found.");
+            }
+
+            var site = await _context.Sites
+                .AsNoTracking()
+                .Include(site => site.SiteType)
+                .FirstOrDefaultAsync(site =>
+                    site.Id == viewModel.SiteId &&
+                    site.IsActive);
+
+            if (site is null)
+            {
+                ModelState.AddModelError(
+                    nameof(viewModel.SiteId),
+                    "The selected site is unavailable or inactive.");
+            }
+            else if (site.SiteType is null)
+            {
+                ModelState.AddModelError(
+                    nameof(viewModel.SiteId),
+                    "The selected site does not have pricing information.");
+            }
+
+            if (viewModel.PaymentMethod == PaymentMethod.Stripe)
+            {
+                ModelState.AddModelError(
+                    nameof(viewModel.PaymentMethod),
+                    "Stripe cannot be used for a manual payment.");
+            }
+
+            if (site is not null &&
+                viewModel.EndDate.Date > viewModel.StartDate.Date)
+            {
+                var siteIsReserved = await _context.Reservations
+                    .AnyAsync(reservation =>
+                        reservation.SiteId == viewModel.SiteId &&
+                        reservation.Status != ReservationStatus.Cancelled &&
+                        reservation.Status != ReservationStatus.Completed &&
+                        reservation.StartDate < viewModel.EndDate.Date &&
+                        reservation.EndDate > viewModel.StartDate.Date);
+
+                if (siteIsReserved)
+                {
+                    ModelState.AddModelError(
+                        nameof(viewModel.SiteId),
+                        "The selected site is already reserved during those dates.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateEmployeeCreateOptionsAsync(
+                    viewModel.CustomerId,
+                    viewModel.SiteId,
+                    viewModel.PaymentMethod);
+
+                return View(viewModel);
+            }
+
+            // Calculate the number of nights and total cost.
+            var numberOfNights =
+                (viewModel.EndDate.Date - viewModel.StartDate.Date).Days;
+
+            var nightlyRate = site!.SiteType!.Price;
+            var totalAmount = nightlyRate * numberOfNights;
+
+            // Create the reservation record.
+            var reservation = new Reservation
+            {
+                ReservationNumber = GenerateReservationNumber(),
+                CustomerId = viewModel.CustomerId,
+                SiteId = viewModel.SiteId,
+                StartDate = viewModel.StartDate.Date,
+                EndDate = viewModel.EndDate.Date,
+                AdultCount = viewModel.AdultCount,
+                ChildCount = viewModel.ChildCount,
+                PetCount = viewModel.PetCount,
+                SpecialRequestsOrNotes = viewModel.SpecialRequestsOrNotes,
+                Status = ReservationStatus.Confirmed,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Create the site-charge bill.
+            var bill = new Bill
+            {
+                Type = BillType.SiteCharge,
+                Description =
+                    $"{numberOfNights} night(s) at Site {site.SiteNumber}",
+                Amount = totalAmount,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Create the manual payment.
+            var payment = new Payment
+            {
+                PaymentMethod = viewModel.PaymentMethod,
+                StripeTransactionId = null,
+                Notes = viewModel.PaymentNotes,
+                Amount = totalAmount,
+                PaidAt = DateTime.UtcNow
+            };
+
+            // Keep all three database operations together.
+            await using var databaseTransaction =
+                await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Save first so the reservation receives its generated ID.
+                _context.Reservations.Add(reservation);
+                await _context.SaveChangesAsync();
+
+                // Connect the bill to the reservation.
+                bill.ReservationId = reservation.Id;
+                _context.Bills.Add(bill);
+                await _context.SaveChangesAsync();
+
+                // Connect the payment to the bill.
+                payment.BillId = bill.Id;
+                _context.Payments.Add(payment);
+                await _context.SaveChangesAsync();
+
+                await databaseTransaction.CommitAsync();
+            }
+            catch
+            {
+                await databaseTransaction.RollbackAsync();
+                throw;
+            }
+
+            TempData["SuccessMessage"] =
+                $"Reservation {reservation.ReservationNumber} was created successfully.";
+
+            return RedirectToAction(nameof(Index));
         }
 
         // Placeholder for Public Customer Edit View
@@ -201,6 +341,61 @@ namespace RVPark.Controllers
                 .ToListAsync();
 
             return Json(availableSites);
+        }
+
+        private async Task PopulateEmployeeCreateOptionsAsync(
+            int? selectedCustomerId = null,
+            int? selectedSiteId = null,
+            PaymentMethod? selectedPaymentMethod = null)
+        {
+            var customers = await _context.Users
+                .AsNoTracking()
+                .Where(user => user.AccessLevel == AccessLevel.Customer)
+                .OrderBy(user => user.LastName)
+                .ThenBy(user => user.FirstName)
+                .ToListAsync();
+
+            ViewBag.Customers = customers
+                .Select(customer => new SelectListItem
+                {
+                    Value = customer.Id.ToString(),
+                    Text = $"{customer.LastName}, {customer.FirstName} — {customer.Email}",
+                    Selected = customer.Id == selectedCustomerId
+                })
+                .ToList();
+
+            var activeSites = await _context.Sites
+                .AsNoTracking()
+                .Where(site => site.IsActive)
+                .OrderBy(site => site.SiteNumber)
+                .ToListAsync();
+
+            ViewBag.Sites = new SelectList(
+                activeSites,
+                "Id",
+                "SiteNumber",
+                selectedSiteId);
+
+            ViewBag.PaymentMethods = Enum.GetValues<PaymentMethod>()
+                .Where(method => method != PaymentMethod.Stripe)
+                .Select(method => new SelectListItem
+                {
+                    Value = method.ToString(),
+                    Text = method == PaymentMethod.Card
+                        ? "Credit Card (Manual Entry)"
+                        : method.ToString(),
+                    Selected = method == selectedPaymentMethod
+                })
+                .ToList();
+        }
+
+        private static string GenerateReservationNumber()
+        {
+            var randomPart = Guid.NewGuid()
+                .ToString("N")[..6]
+                .ToUpperInvariant();
+
+            return $"RES-{DateTime.UtcNow:yyyyMMdd}-{randomPart}";
         }
     }
 }
