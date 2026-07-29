@@ -227,31 +227,16 @@ public static class DatabaseSeeder
 
         foreach (var seedCustomer in seedCustomers)
         {
-            var user = await EnsureUserAsync(context, seedCustomer.Email, passwordHasher, cancellationToken);
-
-            if (!await context.Users.AnyAsync(customer => customer.Id == user.Id, cancellationToken))
-            {
-                context.Users.Add(new User
-                {
-                    Email = seedCustomer.Email,
-                    Phone = seedCustomer.Phone,
-                    FirstName = seedCustomer.FirstName,
-                    LastName = seedCustomer.LastName,
-                    AccessLevel = seedCustomer.AccessLevel,
-                    IsLocked = seedCustomer.IsLocked
-                });
-            }
+            await EnsureUserAsync(context, seedCustomer, passwordHasher, cancellationToken);
         }
 
         await context.SaveChangesAsync(cancellationToken);
 
         var seedCustomerEmails = seedCustomers.Select(seed => seed.Email).ToArray();
 
-        var test = await context.Users
+        return await context.Users
             .Where(customer => seedCustomerEmails.Contains(customer.Email))
             .ToDictionaryAsync(customer => customer.Email, cancellationToken);
-
-        return test;
     }
 
     private static async Task SeedEmployeesAsync(
@@ -268,20 +253,7 @@ public static class DatabaseSeeder
 
         foreach (var seedEmployee in seedEmployees)
         {
-            var user = await EnsureUserAsync(context, seedEmployee.Email, passwordHasher, cancellationToken);
-
-            if (!await context.Users.AnyAsync(employee => employee.Id == user.Id, cancellationToken))
-            {
-                context.Users.Add(new User
-                {
-                    Email = seedEmployee.Email,
-                    Phone = seedEmployee.Phone,
-                    FirstName = seedEmployee.FirstName,
-                    LastName = seedEmployee.LastName,
-                    AccessLevel = seedEmployee.AccessLevel,
-                    IsLocked = seedEmployee.IsLocked
-                });
-            }
+            await EnsureUserAsync(context, seedEmployee, passwordHasher, cancellationToken);
         }
 
         await context.SaveChangesAsync(cancellationToken);
@@ -579,13 +551,13 @@ public static class DatabaseSeeder
 
     private static async Task<User> EnsureUserAsync(
         ApplicationDbContext context,
-        string email,
+        UserSeed seedUser,
         IPasswordHasher<User> passwordHasher,
         CancellationToken cancellationToken)
     {
-        var existingUser = await context.Users.FirstOrDefaultAsync(user => user.Email == email, cancellationToken);
+        var existingUser = await context.Users
+            .FirstOrDefaultAsync(user => user.Email == seedUser.Email, cancellationToken);
 
-        // Hash password and return existing user
         if (existingUser is not null)
         {
             if (existingUser.PasswordHash == PlaceholderPasswordHash)
@@ -597,16 +569,15 @@ public static class DatabaseSeeder
             return existingUser;
         }
 
-        // Otherwise create a new user, then hash password and return
         var user = new User
         {
-            Email = "test.email@test.com",
-            Phone = "9999999999",
-            FirstName = "Test",
-            LastName = "User",
+            Email = seedUser.Email,
+            Phone = seedUser.Phone,
+            FirstName = seedUser.FirstName,
+            LastName = seedUser.LastName,
             CreatedAt = new DateTime(2026, 7, 1, 12, 0, 0),
-            AccessLevel = AccessLevel.Customer,
-            IsLocked = false
+            AccessLevel = seedUser.AccessLevel,
+            IsLocked = seedUser.IsLocked
         };
 
         user.PasswordHash = passwordHasher.HashPassword(user, SeedPassword);
