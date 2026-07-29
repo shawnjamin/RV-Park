@@ -453,6 +453,174 @@ namespace RVPark.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Reservations/Create
+        // This loads the public checkout page when a user clicks "Book Now"
+        [HttpGet]
+        [Authorize(Roles = "Customer")] 
+        public async Task<IActionResult> Create(int siteId, string checkIn, string checkOut)
+        {
+            // 1. Validate the dates passed from the query string
+            if (!DateTime.TryParse(checkIn, out DateTime startDate) || 
+                !DateTime.TryParse(checkOut, out DateTime endDate))
+            {
+                TempData["ErrorMessage"] = "Invalid dates selected. Please search again.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // 2. Load the site details to display on the checkout page
+            var site = await _context.Sites
+                .Include(s => s.SiteType)
+                .FirstOrDefaultAsync(s => s.Id == siteId);
+
+            if (site == null || !site.IsActive)
+            {
+                TempData["ErrorMessage"] = "The selected site is no longer available.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // 3. Prevent double-booking (double-check availability)
+            var siteIsReserved = await _context.Reservations
+                .AnyAsync(r => r.SiteId == siteId &&
+                               r.Status != ReservationStatus.Cancelled &&
+                               r.Status != ReservationStatus.Completed &&
+                               r.StartDate < endDate.Date &&
+                               r.EndDate > startDate.Date);
+
+            if (siteIsReserved)
+            {
+                TempData["ErrorMessage"] = "Sorry, that site was just booked by someone else!";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // 4. Calculate the cost for the summary card
+            var numberOfNights = (endDate.Date - startDate.Date).Days;
+            var nightlyRate = site.SiteType?.Price ?? 0;
+            var totalAmount = nightlyRate * numberOfNights;
+
+            // 5. Pass data to the view using ViewBag
+            ViewBag.Site = site;
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+            ViewBag.NumberOfNights = numberOfNights;
+            ViewBag.TotalAmount = totalAmount;
+
+            // 6. Create a blank reservation model for the form
+            var reservation = new Reservation
+            {
+                SiteId = siteId,
+                StartDate = startDate,
+                EndDate = endDate,
+                AdultCount = 1 // Default
+            };
+
+            return View(reservation);
+        }
+
+        // POST: Reservations/Create
+        // This processes the checkout form submission
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> Create([Bind("SiteId,StartDate,EndDate,AdultCount,ChildCount,PetCount,SpecialRequestsOrNotes")] Reservation reservation)
+        {
+            // Get the logged-in customer's ID
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            var customer = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+
+            if (customer == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Load the site to calculate the final price
+            var site = await _context.Sites
+                .Include(s => s.SiteType)
+                .FirstOrDefaultAsync(s => s.Id == reservation.SiteId);
+
+            if (site == null)
+            {
+                 TempData["ErrorMessage"] = "Error processing reservation. Site not found.";
+                 return RedirectToAction("Index", "Home");
+            }
+
+            // Final validation checks
+            if (reservation.EndDate.Date <= reservation.StartDate.Date)
+            {
+                 ModelState.AddModelError("EndDate", "Check-out date must be after check-in date.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                // Calculate pricing
+                var numberOfNights = (reservation.EndDate.Date - reservation.StartDate.Date).Days;
+                var totalAmount = (site.SiteType?.Price ?? 0) * numberOfNights;
+
+                // Begin Database Transaction
+                await using var databaseTransaction = await _context.Database.BeginTransactionAsync();
+
+                try
+                {
+                    // Save the Reservation
+                    reservation.CustomerId = customer.Id;
+                    reservation.ReservationNumber = GenerateReservationNumber();
+                    reservation.Status = ReservationStatus.Confirmed;
+                    reservation.CreatedAt = DateTime.UtcNow;
+
+                    _context.Reservations.Add(reservation);
+                    await _context.SaveChangesAsync();
+
+                    // Save the Bill
+                    var bill = new Bill
+                    {
+                        ReservationId = reservation.Id,
+                        Type = BillType.SiteCharge,
+                        Description = $"{numberOfNights} night(s) at Site {site.SiteNumber}",
+                        Amount = totalAmount,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.Bills.Add(bill);
+                    await _context.SaveChangesAsync();
+
+                    // Save the Payment (Simulating successful Stripe checkout for now)
+                    var payment = new Payment
+                    {
+                        BillId = bill.Id,
+                        PaymentMethod = PaymentMethod.Stripe,
+                        StripeTransactionId = $"sim_txn_{Guid.NewGuid():N}", // Placeholder
+                        Notes = "Online booking payment",
+                        Amount = totalAmount,
+                        PaidAt = DateTime.UtcNow
+                    };
+
+                    _context.Payments.Add(payment);
+                    await _context.SaveChangesAsync();
+
+                    // Commit everything
+                    await databaseTransaction.CommitAsync();
+
+                    TempData["SuccessMessage"] = $"Booking confirmed! Your reservation number is {reservation.ReservationNumber}.";
+                    
+                    // Redirect to the customer's dashboard
+                    return RedirectToAction(nameof(MyReservations));
+                }
+                catch
+                {
+                    await databaseTransaction.RollbackAsync();
+                    TempData["ErrorMessage"] = "An error occurred while processing your booking. Please try again.";
+                }
+            }
+
+            // If we get here, validation failed. Reload the ViewBag data for the view.
+            ViewBag.Site = site;
+            ViewBag.StartDate = reservation.StartDate;
+            ViewBag.EndDate = reservation.EndDate;
+            ViewBag.NumberOfNights = (reservation.EndDate.Date - reservation.StartDate.Date).Days;
+            ViewBag.TotalAmount = (site.SiteType?.Price ?? 0) * ViewBag.NumberOfNights;
+
+            return View(reservation);
+        }
+
         // GET: Load the real reservation for the customer to edit
         [HttpGet]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
