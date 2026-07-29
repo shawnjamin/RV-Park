@@ -32,7 +32,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
-        options.AccessDeniedPath = "/Account/Login";
+        // Redirect to a 403 page for access denied (since the page technically doesn't exist for the user)
+        // This 403 forbidden status can be caught by razor pages or MVC to display an error message if we want to
+        options.AccessDeniedPath = null;
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
     });
 
 var app = builder.Build();

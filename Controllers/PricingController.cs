@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
@@ -5,6 +6,7 @@ using RVPark.Models;
 
 namespace RVPark.Controllers
 {
+    [Authorize(Roles = "Admin, Manager")]
     public class PricingController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -15,6 +17,7 @@ namespace RVPark.Controllers
         }
 
         // GET: Pricing
+        [Authorize(Roles = "Customer, Employee, Admin, Manager")]
         public async Task<IActionResult> Index()
         {
             var siteTypes = await _context.SiteTypes.ToListAsync();
@@ -22,6 +25,7 @@ namespace RVPark.Controllers
         }
 
         // GET: Pricing/Details
+        [Authorize(Roles = "Customer, Employee, Admin, Manager")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();

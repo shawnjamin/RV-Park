@@ -8,10 +8,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 
 namespace RVPark.Controllers
 {
+    [Authorize(Roles = "Admin, Manager")]
     public class RvSitesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -25,6 +27,7 @@ namespace RVPark.Controllers
 
         // Public search results
         [HttpGet]
+        [Authorize(Roles = "Customer, Employee, Admin, Manager")]
         public async Task<IActionResult> Browse(DateTime? checkIn, DateTime? checkOut, string? siteType, int? rvLength)
         {
             if (checkIn.HasValue && checkOut.HasValue && checkOut.Value <= checkIn.Value)
@@ -77,6 +80,7 @@ namespace RVPark.Controllers
         }
 
         // GET: RvSites
+        [Authorize(Roles = "Customer, Employee, Admin, Manager")]
         public async Task<IActionResult> Index()
         {
             var sites = _context.Sites.Include(s => s.SiteType);
@@ -84,6 +88,7 @@ namespace RVPark.Controllers
         }
 
         // GET: RvSites/Details/5
+        [Authorize(Roles = "Customer, Employee, Admin, Manager")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
@@ -8,6 +9,7 @@ namespace RVPark.Controllers;
 /// <summary>
 /// Generates reservation reports for a selected date range.
 /// </summary>
+[Authorize(Roles = "Admin, Manager")]
 public class ReportsController(ApplicationDbContext context) : Controller
 {
 
