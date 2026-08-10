@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace RVPark.Controllers
 {
-    [Authorize(Roles = "Admin, Manager")]
+    [Authorize(Roles = "Employee, Manager, Admin")]
     public class DashboardController : Controller
     {
         // Login GET

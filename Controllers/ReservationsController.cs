@@ -175,7 +175,7 @@ namespace RVPark.Controllers
 
         // Employee Walk-In Form Loading
         [HttpGet]
-        [Authorize(Roles = "Manager, Admin")]
+        [Authorize(Roles = "Employee, Manager, Admin")]
         public async Task<IActionResult> EmployeeCreate()
         {
             await PopulateEmployeeCreateOptionsAsync();
@@ -193,6 +193,7 @@ namespace RVPark.Controllers
         // Employee Walk-In Form Submission
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Employee, Manager, Admin")]
         public async Task<IActionResult> EmployeeCreate(
             EmployeeReservationFormViewModel viewModel)
         {

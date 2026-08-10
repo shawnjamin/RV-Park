@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace RVPark.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Manager, Admin")]
     public class RvSitesController : Controller
     {
         private readonly ApplicationDbContext _context;
