@@ -170,5 +170,12 @@ namespace RVPark.Controllers
             };
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, properties);
         }
+
+        // Unauthorized Role Redirection Handling
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
     }
 }

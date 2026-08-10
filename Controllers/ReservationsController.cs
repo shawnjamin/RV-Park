@@ -671,7 +671,7 @@ namespace RVPark.Controllers
             // Chronological Validation Logic
             if (updateParams.EndDate <= updateParams.StartDate)
             {
-                TempData["ErrorMessage"] = "Check-out date must be after your Check-in date.";
+                TempData["ErrorMessage"] = "Check-out date must be after your check-in date.";
                 return RedirectToAction(nameof(EditMyTrip), new { id = id });
             }
 
@@ -684,6 +684,21 @@ namespace RVPark.Controllers
                 {
                     TempData["ErrorMessage"] = "Trips that have already started or passed cannot be modified.";
                     return RedirectToAction(nameof(MyReservations));
+                }
+
+                // Overlapping Reservation Conflict Verification
+                var siteIsReserved = await _context.Reservations
+                    .AnyAsync(r => r.SiteId == reservation.SiteId &&
+                                   r.Id != reservation.Id && 
+                                   r.Status != ReservationStatus.Cancelled &&
+                                   r.Status != ReservationStatus.Completed &&
+                                   r.StartDate < updateParams.EndDate.Date &&
+                                   r.EndDate > updateParams.StartDate.Date);
+
+                if (siteIsReserved)
+                {
+                    TempData["ErrorMessage"] = "Those dates conflict with another booking for this site. Please choose different dates.";
+                    return RedirectToAction(nameof(EditMyTrip), new { id = id });
                 }
 
                 reservation.StartDate = updateParams.StartDate;
