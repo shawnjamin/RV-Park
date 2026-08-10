@@ -35,126 +35,138 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
-    <div class="container-fluid overflow-hidden">
-        <div class="row vh-100 overflow-auto">
-            
-            @* Sidebar *@
-            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark d-flex flex-column">
-                <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-3 text-white min-vh-100 w-100">
-                    <a asp-controller="Dashboard" asp-action="Index" class="d-flex align-items-center pb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+
+@* Mobile Header Bar with Collapsible Hamburger Toggle (Visible on mobile screens only) *@
+<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-2 shadow d-md-none">
+    <a class="navbar-brand me-0 px-2 fw-bold fs-5" asp-controller="Dashboard" asp-action="Index">Admin Portal</a>
+    <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</header>
+
+<div class="container-fluid">
+    <div class="row">
+
+        @* Sidebar Navigation *@
+        <nav id="sidebarMenu" class="col-md-3 col-xl-2 d-md-block bg-dark sidebar collapse min-vh-100">
+            <div class="position-sticky pt-3 d-flex flex-column h-100">
+
+                @* Desktop Portal Title Header (Hidden on small mobile screens) *@
+                <div class="px-3 pb-3 mb-md-0 me-md-auto text-white d-none d-md-block">
+                    <a asp-controller="Dashboard" asp-action="Index" class="text-white text-decoration-none">
                         <span class="fs-4 fw-bold">Admin Portal</span>
                     </a>
+                </div>
 
-                    <ul class="nav nav-pills flex-column mb-auto w-100" style="list-style: none; padding-left: 0;">
-                        
-                        @* Dashboard - Available to Staff & Admin *@
-                        <li class="nav-item">
-                            <a asp-controller="Dashboard" asp-action="Index" class="nav-link sidebar-link @IsActive("Dashboard", "Index")">
-                                <i class="fs-4 bi-house me-2"></i> <span class="d-none d-sm-inline">Dashboard</span>
-                            </a>
-                        </li>
+                <ul class="nav nav-pills flex-column mb-auto w-100" style="list-style: none; padding-left: 0;">
 
-                        @* Admin & Manager Only: Park Management Section *@
-                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-                        {
-                            <li class="nav-item mt-3 mb-1">
-                                <span class="text-secondary small fw-bold text-uppercase px-2" style="font-size: 0.75rem;">Park Management</span>
-                            </li>
-                            
-                            <li>
-                                <a asp-controller="RvSites" asp-action="Index" class="nav-link sidebar-link @IsActive("RvSites", "Index")">
-                                    <i class="fs-4 bi-geo-alt me-2"></i> <span class="d-none d-sm-inline">Manage Sites</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a asp-controller="Pricing" asp-action="Index" class="nav-link sidebar-link @IsActive("Pricing", "Index")">
-                                    <i class="fs-4 bi-tags me-2"></i> <span class="d-none d-sm-inline">Maintain Pricing</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a asp-controller="Fees" asp-action="Index" class="nav-link sidebar-link @IsActive("Fees", "Index")">
-                                    <i class="fs-4 bi-cash-coin me-2"></i> <span class="d-none d-sm-inline">Manage Fees</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a asp-controller="Employees" asp-action="Index" class="nav-link sidebar-link @IsActive("Employees", "Index")">
-                                    <i class="fs-4 bi-people me-2"></i>
-                                    <span class="d-none d-sm-inline">Employee Accounts</span>
-                                </a>
-                            </li>
-                        }
+                    @* Dashboard - Available to Staff & Admin *@
+                    <li class="nav-item">
+                        <a asp-controller="Dashboard" asp-action="Index" class="nav-link sidebar-link @IsActive("Dashboard", "Index")">
+                            <i class="fs-4 bi-house me-2"></i> <span>Dashboard</span>
+                        </a>
+                    </li>
 
-                        @* Bookings Section - Available to Staff & Admin *@
+                    @* Admin & Manager Only: Park Management Section *@
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                    {
                         <li class="nav-item mt-3 mb-1">
-                            <span class="text-secondary small fw-bold text-uppercase px-2" style="font-size: 0.75rem;">Bookings</span>
+                            <span class="text-secondary small fw-bold text-uppercase px-3" style="font-size: 0.75rem;">Park Management</span>
                         </li>
 
                         <li>
-                            <a asp-controller="Reservations" asp-action="Index" class="nav-link sidebar-link @IsActive("Reservations", "Index")">
-                                <i class="fs-4 bi-calendar-check me-2"></i> <span class="d-none d-sm-inline">Manage Reservations</span>
+                            <a asp-controller="RvSites" asp-action="Index" class="nav-link sidebar-link @IsActive("RvSites", "Index")">
+                                <i class="fs-4 bi-geo-alt me-2"></i> <span>Manage Sites</span>
                             </a>
                         </li>
-
                         <li>
-                            <a asp-controller="Reservations" asp-action="EmployeeCreate" class="nav-link sidebar-link @IsActive("Reservations", "EmployeeCreate")">
-                                <i class="fs-4 bi-person-plus me-2"></i> <span class="d-none d-sm-inline">Walk-In Booking</span>
+                            <a asp-controller="Pricing" asp-action="Index" class="nav-link sidebar-link @IsActive("Pricing", "Index")">
+                                <i class="fs-4 bi-tags me-2"></i> <span>Maintain Pricing</span>
                             </a>
                         </li>
+                        <li>
+                            <a asp-controller="Fees" asp-action="Index" class="nav-link sidebar-link @IsActive("Fees", "Index")">
+                                <i class="fs-4 bi-cash-coin me-2"></i> <span>Manage Fees</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Employees" asp-action="Index" class="nav-link sidebar-link @IsActive("Employees", "Index")">
+                                <i class="fs-4 bi-people me-2"></i> <span>Employee Accounts</span>
+                            </a>
+                        </li>
+                    }
 
-                        @* Admin & Manager Only: Reports *@
-                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-                        {
-                            <li>
-                                <a asp-controller="Reports" asp-action="Index" class="nav-link sidebar-link @IsActive("Reports", "Index")">
-                                    <i class="fs-4 bi-file-earmark-bar-graph me-2"></i> <span class="d-none d-sm-inline">Reports</span>
-                                </a>
-                            </li>
-                        }
-                    </ul>
+                    @* Bookings Section - Available to Staff & Admin *@
+                    <li class="nav-item mt-3 mb-1">
+                        <span class="text-secondary small fw-bold text-uppercase px-3" style="font-size: 0.75rem;">Bookings</span>
+                    </li>
 
-                    @* Login / Logout Partial *@
-                    <div class="pb-4 w-100">
-                        <partial name="_LoginPartial" />
-                    </div>
+                    <li>
+                        <a asp-controller="Reservations" asp-action="Index" class="nav-link sidebar-link @IsActive("Reservations", "Index")">
+                            <i class="fs-4 bi-calendar-check me-2"></i> <span>Manage Reservations</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a asp-controller="Reservations" asp-action="EmployeeCreate" class="nav-link sidebar-link @IsActive("Reservations", "EmployeeCreate")">
+                            <i class="fs-4 bi-person-plus me-2"></i> <span>Walk-In Booking</span>
+                        </a>
+                    </li>
+
+                    @* Admin & Manager Only: Reports *@
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                    {
+                        <li>
+                            <a asp-controller="Reports" asp-action="Index" class="nav-link sidebar-link @IsActive("Reports", "Index")">
+                                <i class="fs-4 bi-file-earmark-bar-graph me-2"></i> <span>Reports</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+
+                @* Login / Logout Partial *@
+                <div class="mt-auto px-3 pb-4">
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
+        </nav>
 
-            @* Main Content Area *@
-            <div class="col d-flex flex-column h-100 overflow-auto py-3 px-4">
-                <main role="main" class="pb-3 flex-grow-1">
-                    @* Global Status Banners *@
-                    @if (TempData["SuccessMessage"] is string successMessage)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                            <i class="bi bi-check-circle me-2"></i> @successMessage
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
-
-                    @if (TempData["ErrorMessage"] is string errorMessage)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                            <i class="bi bi-exclamation-triangle me-2"></i> @errorMessage
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
-
-                    @RenderBody()
-                </main>
-
-                <footer class="border-top footer text-muted pt-3 mt-auto">
-                    <div class="container-fluid text-center text-sm-start">
-                        &copy; 2026 - RVPark - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        @* Main Content Area *@
+        <main class="col-md-9 ms-sm-auto col-xl-10 px-md-4 py-4 d-flex flex-column min-vh-100">
+            <div class="flex-grow-1">
+                @* Global Status Banners *@
+                @if (TempData["SuccessMessage"] is string successMessage)
+                {
+                    <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+                        <i class="bi bi-check-circle me-2"></i> @successMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                </footer>
+                }
+
+                @if (TempData["ErrorMessage"] is string errorMessage)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i> @errorMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @RenderBody()
             </div>
 
-        </div>
-    </div>
+            <footer class="border-top footer text-muted pt-3 mt-auto">
+                <div class="container-fluid text-center text-sm-start">
+                    &copy; 2026 - RVPark - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                </div>
+            </footer>
+        </main>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
