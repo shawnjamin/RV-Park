@@ -82,7 +82,6 @@ public static class DatabaseSeeder
         var existingSites = await context.SiteTypes.ToListAsync(cancellationToken);
         foreach (var site in existingSites)
         {
-            // If the record exists but StartDate is at default (0001-01-01), set it
             if (site.StartDate == DateTime.MinValue)
             {
                 site.StartDate = new DateTime(2026, 1, 1);
@@ -560,11 +559,12 @@ public static class DatabaseSeeder
 
         if (existingUser is not null)
         {
-            if (existingUser.PasswordHash == PlaceholderPasswordHash)
-            {
-                existingUser.PasswordHash = passwordHasher.HashPassword(existingUser, SeedPassword);
-                await context.SaveChangesAsync(cancellationToken);
-            }
+            // Re-hash password to ensure compatibility with UserPasswordHasher
+            existingUser.PasswordHash = passwordHasher.HashPassword(existingUser, SeedPassword);
+            existingUser.IsLocked = seedUser.IsLocked;
+            existingUser.AccessLevel = seedUser.AccessLevel;
+            context.Users.Update(existingUser);
+            await context.SaveChangesAsync(cancellationToken);
 
             return existingUser;
         }
@@ -589,7 +589,6 @@ public static class DatabaseSeeder
     }
 
     private sealed record UserSeed(string Email, string Phone, string FirstName, string LastName, AccessLevel AccessLevel, bool IsLocked);
-    
 
     private sealed record BillSeed(
         string Key,

@@ -22,7 +22,7 @@
                     <h6 class="text-muted text-uppercase fw-bold mb-0">Today's Check-ins</h6>
                     <i class="fs-4 bi-box-arrow-in-right text-primary"></i>
                 </div>
-                <h2 class="fw-bold mb-0">12</h2>
+                <h2 class="fw-bold mb-0">@ViewBag.TodaysCheckIns</h2>
             </div>
         </div>
     </div>
@@ -34,7 +34,7 @@
                     <h6 class="text-muted text-uppercase fw-bold mb-0">Active Sites</h6>
                     <i class="fs-4 bi-geo-alt text-success"></i>
                 </div>
-                <h2 class="fw-bold mb-0">45 / 50</h2>
+                <h2 class="fw-bold mb-0">@ViewBag.ActiveSites / @ViewBag.TotalSites</h2>
             </div>
         </div>
     </div>
@@ -46,7 +46,7 @@
                     <h6 class="text-muted text-uppercase fw-bold mb-0">Pending Payments</h6>
                     <i class="fs-4 bi-cash text-warning"></i>
                 </div>
-                <h2 class="fw-bold mb-0">4</h2>
+                <h2 class="fw-bold mb-0">@ViewBag.PendingPayments</h2>
             </div>
         </div>
     </div>
@@ -58,7 +58,7 @@
                     <h6 class="text-muted text-uppercase fw-bold mb-0">Needs Attention</h6>
                     <i class="fs-4 bi-exclamation-triangle text-danger"></i>
                 </div>
-                <h2 class="fw-bold mb-0">1</h2>
+                <h2 class="fw-bold mb-0">@ViewBag.NeedsAttention</h2>
             </div>
         </div>
     </div>
@@ -79,25 +79,28 @@
         </div>
     </div>
     
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-geo-alt text-success mb-3" style="font-size: 2.5rem;"></i>
-                <h5 class="fw-bold">Site Configuration</h5>
-                <p class="text-muted small">Add new RV sites, manage hookups, and upload photos.</p>
-                <a asp-controller="RvSites" asp-action="Index" class="btn btn-success w-100 mt-2">Go to Sites</a>
+    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+    {
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-geo-alt text-success mb-3" style="font-size: 2.5rem;"></i>
+                    <h5 class="fw-bold">Site Configuration</h5>
+                    <p class="text-muted small">Add new RV sites, manage hookups, and upload photos.</p>
+                    <a asp-controller="RvSites" asp-action="Index" class="btn btn-success w-100 mt-2">Go to Sites</a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-file-earmark-bar-graph text-dark mb-3" style="font-size: 2.5rem;"></i>
-                <h5 class="fw-bold">Generate Reports</h5>
-                <p class="text-muted small">Pull reservation data and export to PDF by date range.</p>
-                <a asp-controller="Reports" asp-action="Index" class="btn btn-dark w-100 mt-2">Go to Reports</a>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100 bg-light hover-shadow transition-all">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-file-earmark-bar-graph text-dark mb-3" style="font-size: 2.5rem;"></i>
+                    <h5 class="fw-bold">Generate Reports</h5>
+                    <p class="text-muted small">Pull reservation data and export to PDF by date range.</p>
+                    <a asp-controller="Reports" asp-action="Index" class="btn btn-dark w-100 mt-2">Go to Reports</a>
+                </div>
             </div>
         </div>
-    </div>
+    }
 </div>

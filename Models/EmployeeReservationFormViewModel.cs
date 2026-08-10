@@ -5,7 +5,7 @@ namespace RVPark.Models;
 public class EmployeeReservationFormViewModel
 {
     [Display(Name = "Existing Customer")]
-    public int? CustomerId { get; set; } // Nullable in case walk-in does not have an ID yet (first time).
+    public int? CustomerId { get; set; } 
 
     [StringLength(100)]
     [Display(Name = "First Name")]
@@ -24,6 +24,10 @@ public class EmployeeReservationFormViewModel
     [StringLength(30)]
     [Display(Name = "Phone")]
     public string? NewCustomerPhone { get; set; }
+
+    // Military Verification Flag
+    [Display(Name = "Military ID Verified")]
+    public bool IsMilitary { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Please select a site.")]
     [Display(Name = "Site")]

@@ -12,7 +12,7 @@ namespace RVPark.Controllers;
 /// Site charges are excluded because they are managed separately from
 /// additional reservation fees.
 /// </summary>
-[Authorize]
+[Authorize(Roles = "Manager, Admin")]
 public class FeesController(ApplicationDbContext context) : Controller
 {
 

@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace RVPark.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Manager, Admin")]
     public class RvSitesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -27,7 +27,7 @@ namespace RVPark.Controllers
 
         // Public search results
         [HttpGet]
-        [Authorize(Roles = "Customer, Employee, Admin, Manager")]
+        [AllowAnonymous]
         public async Task<IActionResult> Browse(DateTime? checkIn, DateTime? checkOut, string? siteType, int? rvLength)
         {
             if (checkIn.HasValue && checkOut.HasValue && checkOut.Value <= checkIn.Value)

@@ -5,6 +5,9 @@
     Layout = "_AdminLayout";
 }
 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="fw-bold">Walk-In Reservation</h2>
@@ -20,22 +23,20 @@
 
 <form asp-controller="Reservations"
       asp-action="EmployeeCreate"
-      method="post">
+      method="post" id="walkInForm">
 
     @if (!ViewData.ModelState.IsValid)
     {
         <div asp-validation-summary="All"
-            class="alert alert-danger"
-            role="alert">
+             class="alert alert-danger"
+             role="alert">
         </div>
     }
 
     <div class="row g-4">
 
-        <!-- Customer and trip information -->
         <div class="col-lg-8">
 
-            <!-- Customer selection -->
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-3">
                     <h5 class="mb-0 fw-bold">1. Customer Information</h5>
@@ -44,233 +45,178 @@
                 <div class="card-body p-4">
                     <div class="mb-4">
                         <label asp-for="CustomerId"
-                            class="form-label fw-bold"></label>
+                               class="form-label fw-bold">Search Existing Customer</label>
 
                         <select asp-for="CustomerId"
                                 asp-items="ViewBag.Customers"
-                                class="form-select">
+                                class="form-select searchable-select">
                             <option value="">
                                 -- New Walk-In Customer --
                             </option>
                         </select>
 
                         <span asp-validation-for="CustomerId"
-                            class="text-danger"></span>
+                              class="text-danger"></span>
 
                         <div class="form-text">
-                            Select an existing customer, or leave this blank and enter
-                            the walk-in customer's information below.
+                            Type to search for an existing customer, or leave blank to enter a new one below.
                         </div>
                     </div>
 
-                    <div class="border-top pt-4">
+                    <div class="border-top pt-4" id="newCustomerFields">
                         <h6 class="fw-bold mb-3">New Walk-In Customer</h6>
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label asp-for="NewCustomerFirstName"
-                                    class="form-label"></label>
-
-                                <input asp-for="NewCustomerFirstName"
-                                    class="form-control" />
-
-                                <span asp-validation-for="NewCustomerFirstName"
-                                    class="text-danger"></span>
+                                <label asp-for="NewCustomerFirstName" class="form-label"></label>
+                                <input asp-for="NewCustomerFirstName" class="form-control" />
+                                <span asp-validation-for="NewCustomerFirstName" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6">
-                                <label asp-for="NewCustomerLastName"
-                                    class="form-label"></label>
-
-                                <input asp-for="NewCustomerLastName"
-                                    class="form-control" />
-
-                                <span asp-validation-for="NewCustomerLastName"
-                                    class="text-danger"></span>
+                                <label asp-for="NewCustomerLastName" class="form-label"></label>
+                                <input asp-for="NewCustomerLastName" class="form-control" />
+                                <span asp-validation-for="NewCustomerLastName" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6">
-                                <label asp-for="NewCustomerEmail"
-                                    class="form-label"></label>
-
-                                <input asp-for="NewCustomerEmail"
-                                    type="email"
-                                    class="form-control" />
-
-                                <span asp-validation-for="NewCustomerEmail"
-                                    class="text-danger"></span>
+                                <label asp-for="NewCustomerEmail" class="form-label"></label>
+                                <input asp-for="NewCustomerEmail" type="email" class="form-control" />
+                                <span asp-validation-for="NewCustomerEmail" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6">
-                                <label asp-for="NewCustomerPhone"
-                                    class="form-label"></label>
-
-                                <input asp-for="NewCustomerPhone"
-                                    type="tel"
-                                    class="form-control" />
-
-                                <span asp-validation-for="NewCustomerPhone"
-                                    class="text-danger"></span>
+                                <label asp-for="NewCustomerPhone" class="form-label"></label>
+                                <input asp-for="NewCustomerPhone" type="tel" class="form-control" />
+                                <span asp-validation-for="NewCustomerPhone" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-12 mt-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="IsMilitary" name="IsMilitary" value="true">
+                                    <label class="form-check-label fw-bold" for="IsMilitary">
+                                        Customer has presented a valid Military ID
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-        <!-- Reservation Details -->
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold">2. Reservation Details</h5>
-            </div>
-
-            <div class="card-body p-4">
-                <div class="row g-3">
-
-                    @* Site selection *@
-                    <div class="col-md-12">
-                        <label asp-for="SiteId" class="form-label fw-bold"></label>
-
-                        <select asp-for="SiteId"
-                                asp-items="ViewBag.Sites"
-                                class="form-select">
-                            <option value="">-- Select a Site --</option>
-                        </select>
-
-                        <span asp-validation-for="SiteId"
-                            class="text-danger"></span>
-                    </div>
-
-                    @* Check-in date *@
-                    <div class="col-md-6">
-                        <label asp-for="StartDate"
-                            class="form-label fw-bold"></label>
-
-                        <input asp-for="StartDate"
-                            type="date"
-                            class="form-control" />
-
-                        <span asp-validation-for="StartDate"
-                            class="text-danger"></span>
-                    </div>
-
-                    @* Check-out date *@
-                    <div class="col-md-6">
-                        <label asp-for="EndDate"
-                            class="form-label fw-bold"></label>
-
-                        <input asp-for="EndDate"
-                            type="date"
-                            class="form-control" />
-
-                        <span asp-validation-for="EndDate"
-                            class="text-danger"></span>
-                    </div>
-
-                    @* Guest counts *@
-                    <div class="col-md-4">
-                        <label asp-for="AdultCount"
-                            class="form-label fw-bold"></label>
-
-                        <input asp-for="AdultCount"
-                            type="number"
-                            min="1"
-                            class="form-control" />
-
-                        <span asp-validation-for="AdultCount"
-                            class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label asp-for="ChildCount"
-                            class="form-label fw-bold"></label>
-
-                        <input asp-for="ChildCount"
-                            type="number"
-                            min="0"
-                            class="form-control" />
-
-                        <span asp-validation-for="ChildCount"
-                            class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label asp-for="PetCount"
-                            class="form-label fw-bold"></label>
-
-                        <input asp-for="PetCount"
-                            type="number"
-                            min="0"
-                            class="form-control" />
-
-                        <span asp-validation-for="PetCount"
-                            class="text-danger"></span>
-                    </div>
-
-                    @* Optional reservation notes *@
-                    <div class="col-md-12">
-                        <label asp-for="SpecialRequestsOrNotes"
-                            class="form-label fw-bold"></label>
-
-                        <textarea asp-for="SpecialRequestsOrNotes"
-                                class="form-control"
-                                rows="3"
-                                placeholder="Accessibility needs, arrival notes, or other requests..."></textarea>
-
-                        <span asp-validation-for="SpecialRequestsOrNotes"
-                            class="text-danger"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
-
-        <!-- Payment information -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm border-0 bg-light">
-                <div class="card-header bg-dark text-white py-3">
-                    <h5 class="mb-0 fw-bold">
-                        3. Payment
-                    </h5>
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">2. Reservation Details</h5>
                 </div>
 
                 <div class="card-body p-4">
+                    <div class="row g-3">
 
-                    <div class="alert alert-info">
-                        The total will be calculated from the selected site
-                        and reservation dates when the form is submitted.
+                        @* Site selection *@
+                        <div class="col-md-12">
+                            <label asp-for="SiteId" class="form-label fw-bold"></label>
+
+                            <select asp-for="SiteId"
+                                    asp-items="ViewBag.Sites"
+                                    class="form-select price-trigger">
+                                <option value="">-- Select a Site --</option>
+                            </select>
+                            <span asp-validation-for="SiteId" class="text-danger"></span>
+                        </div>
+
+                        @* Check-in date *@
+                        <div class="col-md-6">
+                            <label asp-for="StartDate" class="form-label fw-bold"></label>
+                            <input asp-for="StartDate" type="date" class="form-control price-trigger" />
+                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                        </div>
+
+                        @* Check-out date *@
+                        <div class="col-md-6">
+                            <label asp-for="EndDate" class="form-label fw-bold"></label>
+                            <input asp-for="EndDate" type="date" class="form-control price-trigger" />
+                            <span asp-validation-for="EndDate" class="text-danger"></span>
+                        </div>
+
+                        @* Guest counts *@
+                        <div class="col-md-4">
+                            <label asp-for="AdultCount" class="form-label fw-bold"></label>
+                            <input asp-for="AdultCount" type="number" min="1" class="form-control" />
+                            <span asp-validation-for="AdultCount" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ChildCount" class="form-label fw-bold"></label>
+                            <input asp-for="ChildCount" type="number" min="0" class="form-control" />
+                            <span asp-validation-for="ChildCount" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="PetCount" class="form-label fw-bold"></label>
+                            <input asp-for="PetCount" type="number" min="0" class="form-control" />
+                            <span asp-validation-for="PetCount" class="text-danger"></span>
+                        </div>
+
+                        @* Optional reservation notes *@
+                        <div class="col-md-12">
+                            <label asp-for="SpecialRequestsOrNotes" class="form-label fw-bold"></label>
+                            <textarea asp-for="SpecialRequestsOrNotes" class="form-control" rows="3" placeholder="Accessibility needs, arrival notes, or other requests..."></textarea>
+                            <span asp-validation-for="SpecialRequestsOrNotes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 bg-light sticky-top" style="top: 20px;">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 fw-bold">3. Payment</h5>
+                </div>
+
+                <div class="card-body p-4">
+                    
+                    <div class="text-center mb-4 p-3 bg-white border rounded">
+                        <h6 class="text-muted text-uppercase fw-bold mb-1">Total Amount Due</h6>
+                        <h2 id="liveTotalDisplay" class="fw-bold text-success mb-0">$0.00</h2>
+                        <input type="hidden" id="CalculatedTotal" name="CalculatedTotal" value="0" />
+                        <small id="pricingError" class="text-danger d-none">Please select valid dates and site.</small>
                     </div>
 
                     <div class="mb-4">
-                        <label asp-for="PaymentMethod"
-                               class="form-label fw-bold"></label>
-
+                        <label asp-for="PaymentMethod" class="form-label fw-bold"></label>
                         <select asp-for="PaymentMethod"
                                 asp-items="ViewBag.PaymentMethods"
-                                class="form-select border-primary">
-                            <option value="">
-                                -- Select Payment Method --
-                            </option>
+                                class="form-select border-primary" id="paymentMethodSelect">
+                            <option value="">-- Select Payment Method --</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Check">Check</option>
+                            <option value="ManualCard">Manual Credit Card Entry</option>
                         </select>
+                        <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                    </div>
 
-                        <span asp-validation-for="PaymentMethod"
-                              class="text-danger"></span>
+                    <div id="cashCalculatorSection" class="mb-4 d-none p-3 bg-white border rounded border-warning">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-calculator"></i> Cash Calculator</h6>
+                        
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Amount Tendered ($)</label>
+                            <input type="number" step="0.01" id="amountTendered" class="form-control border-warning" placeholder="0.00" />
+                        </div>
+                        
+                        <div class="mt-3 text-end">
+                            <span class="text-muted small">Change Due:</span>
+                            <h4 id="changeDueDisplay" class="fw-bold text-primary mb-0">$0.00</h4>
+                        </div>
                     </div>
 
                     <div class="mb-4">
-                        <label asp-for="PaymentNotes"
-                               class="form-label"></label>
-
-                        <textarea asp-for="PaymentNotes"
-                                  class="form-control"
-                                  rows="3"
-                                  placeholder="Check number, terminal reference, or other notes..."></textarea>
-
-                        <span asp-validation-for="PaymentNotes"
-                              class="text-danger"></span>
+                        <label asp-for="PaymentNotes" class="form-label"></label>
+                        <textarea asp-for="PaymentNotes" class="form-control" rows="3" placeholder="Check number, terminal reference, or other notes..."></textarea>
+                        <span asp-validation-for="PaymentNotes" class="text-danger"></span>
                     </div>
 
-                    <button type="submit"
-                            class="btn btn-success btn-lg w-100">
+                    <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">
                         Process and Book
                     </button>
                 </div>
@@ -285,4 +231,83 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize Searchable Dropdown
+            $('.searchable-select').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '-- New Walk-In Customer --',
+                allowClear: true
+            });
+
+            // Toggle New Customer Fields based on dropdown
+            $('#CustomerId').on('change', function() {
+                if($(this).val()) {
+                    $('#newCustomerFields').slideUp();
+                } else {
+                    $('#newCustomerFields').slideDown();
+                }
+            });
+
+            // Cash Calculator Logic
+            $('#paymentMethodSelect').on('change', function() {
+                if($(this).val() === 'Cash') {
+                    $('#cashCalculatorSection').removeClass('d-none');
+                } else {
+                    $('#cashCalculatorSection').addClass('d-none');
+                    $('#amountTendered').val('');
+                    $('#changeDueDisplay').text('$0.00');
+                }
+            });
+
+            $('#amountTendered').on('input', function() {
+                let total = parseFloat($('#CalculatedTotal').val()) || 0;
+                let tendered = parseFloat($(this).val()) || 0;
+                let change = tendered - total;
+                
+                if(change >= 0) {
+                    $('#changeDueDisplay').text('$' + change.toFixed(2)).removeClass('text-danger').addClass('text-primary');
+                } else {
+                    $('#changeDueDisplay').text('Insufficient Funds').removeClass('text-primary').addClass('text-danger');
+                }
+            });
+
+            // Live Pricing Fetcher
+            $('.price-trigger').on('change', function() {
+                let siteId = $('#SiteId').val();
+                let startDate = $('#StartDate').val();
+                let endDate = $('#EndDate').val();
+
+                if(siteId && startDate && endDate) {
+                    // Make AJAX call to backend API
+                    $.ajax({
+                        url: '/Reservations/CalculatePrice',
+                        type: 'GET',
+                        data: { siteId: siteId, startDate: startDate, endDate: endDate },
+                        success: function(response) {
+                            if(response.success) {
+                                $('#liveTotalDisplay').text('$' + response.total.toFixed(2));
+                                $('#CalculatedTotal').val(response.total);
+                                $('#pricingError').addClass('d-none');
+                                
+                                // trigger change calculator update if open
+                                $('#amountTendered').trigger('input'); 
+                            } else {
+                                $('#pricingError').text(response.message).removeClass('d-none');
+                                $('#liveTotalDisplay').text('$0.00');
+                                $('#CalculatedTotal').val(0);
+                            }
+                        },
+                        error: function() {
+                            $('#pricingError').text("Error calculating price.").removeClass('d-none');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 }

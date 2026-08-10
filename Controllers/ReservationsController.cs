@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace RVPark.Controllers
 {
+    // Require authentication for all endpoints in this controller, but restrict roles per-action
     [Authorize]
     public class ReservationsController : Controller
     {
@@ -18,13 +19,12 @@ namespace RVPark.Controllers
             _context = context;
         }
 
-        // Displays the public customer reservation dashboard.
-        // Public customer dashboard
+        // Public Customer Dashboard View
         [HttpGet]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> MyReservations([FromServices] ApplicationDbContext _context)
         {
-            // Read the Email claim out of the newly implemented Cookie
+            // Retrieve User Email Claim
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
             if (string.IsNullOrEmpty(userEmail))
@@ -32,7 +32,7 @@ namespace RVPark.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Query the DB for this exact user, including their reservations and sites
+            // Query Current User and Associated Records
             var currentUser = await _context.Users
                 .Include(u => u.Reservations)
                     .ThenInclude(r => r.Site)
@@ -43,7 +43,7 @@ namespace RVPark.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Sort their trips by date
+            // Order Customer Trips by Date
             var myTrips = currentUser.Reservations
                 .OrderBy(r => r.StartDate)
                 .ToList();
@@ -51,10 +51,8 @@ namespace RVPark.Controllers
             return View(myTrips);
         }
 
-        // GET: Reservations (Includes the Search logic from the rubric)
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
-        // Displays all reservations and optionally filters them by reservation
-        // number or customer name.
+        // Administrator and Employee Index Search View (Restricted to Staff/Admin)
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> Index(string searchQuery)
         {
             var reservations = _context.Reservations
@@ -79,9 +77,8 @@ namespace RVPark.Controllers
                 .ToListAsync());
         }
 
-
-        // GET: Reservations/Edit/5
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        // Administrator Edit View Loading (Restricted to Staff/Admin)
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null)
@@ -99,7 +96,7 @@ namespace RVPark.Controllers
                 return NotFound();
             }
 
-            // Populate the site dropdown with active sites.
+            // Active Site Dropdown Population
             ViewBag.AvailableSites = new SelectList(
                 _context.Sites.Where(site => site.IsActive),
                 "Id",
@@ -109,11 +106,10 @@ namespace RVPark.Controllers
             return View(reservation);
         }
 
-        // Saves editable reservation fields.
+        // Administrator Edit Save Submission (Restricted to Staff/Admin)
         [HttpPost]
         [ValidateAntiForgeryToken]
-
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> Edit(
             int id,
             [Bind("Id,StartDate,EndDate,SiteId")] Reservation updateParams)
@@ -152,10 +148,10 @@ namespace RVPark.Controllers
             }
         }
 
-        // Cancels a reservation without deleting it from the database.
+        // Administrator Cancel Submission (Restricted to Staff/Admin)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> Cancel(int id)
         {
             var reservation = await _context.Reservations.FindAsync(id);
@@ -172,15 +168,15 @@ namespace RVPark.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Checks whether a reservation still exists.
+        // Database Verification for Reservation Existence
         private bool ReservationExists(int id)
         {
             return _context.Reservations.Any(reservation => reservation.Id == id);
         }
 
-        // Loads the employee walk-in reservation form.
+        // Employee Walk-In Form Loading
         [HttpGet]
-        [Authorize(Roles = "Manager, Admin")]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> EmployeeCreate()
         {
             await PopulateEmployeeCreateOptionsAsync();
@@ -195,14 +191,14 @@ namespace RVPark.Controllers
             return View(viewModel);
         }
 
-        // Creates a walk-in reservation, customer record when necessary,
-        // site-charge bill, and manual payment.
+        // Employee Walk-In Form Submission
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> EmployeeCreate(
             EmployeeReservationFormViewModel viewModel)
         {
-            // Check-in cannot be earlier than today.
+            // Past Date Validation Check
             if (viewModel.StartDate.Date < DateTime.Today)
             {
                 ModelState.AddModelError(
@@ -210,7 +206,7 @@ namespace RVPark.Controllers
                     "The check-in date cannot be in the past.");
             }
 
-            // Check-out must occur after check-in.
+            // Chronological Order Validation Check
             if (viewModel.EndDate.Date <= viewModel.StartDate.Date)
             {
                 ModelState.AddModelError(
@@ -220,8 +216,7 @@ namespace RVPark.Controllers
 
             User? existingCustomer = null;
 
-            // When an existing customer was selected, verify that the record
-            // exists and belongs to a customer account.
+            // Existing Customer Account Verification
             if (viewModel.CustomerId.HasValue &&
                 viewModel.CustomerId.Value > 0)
             {
@@ -240,7 +235,7 @@ namespace RVPark.Controllers
             }
             else
             {
-                // A new walk-in customer requires basic contact information.
+                // New Walk-In Customer Field Validation
                 if (string.IsNullOrWhiteSpace(viewModel.NewCustomerFirstName))
                 {
                     ModelState.AddModelError(
@@ -269,7 +264,7 @@ namespace RVPark.Controllers
                         "The customer's phone number is required.");
                 }
 
-                // Prevent duplicate user accounts with the same email address.
+                // Email Duplication Check
                 if (!string.IsNullOrWhiteSpace(viewModel.NewCustomerEmail))
                 {
                     var normalizedEmail =
@@ -288,7 +283,7 @@ namespace RVPark.Controllers
                 }
             }
 
-            // Load the selected active site and its pricing information.
+            // Site Pricing and Availability Check
             var site = await _context.Sites
                 .AsNoTracking()
                 .Include(item => item.SiteType)
@@ -309,7 +304,7 @@ namespace RVPark.Controllers
                     "The selected site does not have pricing information.");
             }
 
-            // Stripe is reserved for the online checkout workflow.
+            // Stripe Prohibition for Manual Employee Entries
             if (viewModel.PaymentMethod == PaymentMethod.Stripe)
             {
                 ModelState.AddModelError(
@@ -317,7 +312,7 @@ namespace RVPark.Controllers
                     "Stripe cannot be used for a manual payment.");
             }
 
-            // Prevent double-booking the selected site.
+            // Double Booking Validation Check
             if (site is not null &&
                 viewModel.EndDate.Date > viewModel.StartDate.Date)
             {
@@ -337,7 +332,7 @@ namespace RVPark.Controllers
                 }
             }
 
-            // Reload dropdown values before returning an invalid form.
+            // Dropdown Value Reload for Invalid Form Rendering
             if (!ModelState.IsValid)
             {
                 await PopulateEmployeeCreateOptionsAsync(
@@ -348,26 +343,23 @@ namespace RVPark.Controllers
                 return View(viewModel);
             }
 
-            // Calculate the total site charge.
+            // Total Site Charge Calculation
             var numberOfNights =
                 (viewModel.EndDate.Date - viewModel.StartDate.Date).Days;
 
             var nightlyRate = site!.SiteType!.Price;
             var totalAmount = nightlyRate * numberOfNights;
 
-            // Use the existing customer ID when one was selected.
-            // A new customer's ID will be assigned after that record is saved.
+            // Customer ID Assignment
             var customerId = existingCustomer?.Id ?? 0;
 
-            // Keep customer, reservation, bill, and payment creation together.
-            // If one save fails, the entire operation is rolled back.
+            // Database Transaction Isolation Block
             await using var databaseTransaction =
                 await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // Create a new customer account when the employee did not
-                // select an existing customer.
+                // New Customer Record Creation
                 if (existingCustomer is null)
                 {
                     var newCustomer = new User
@@ -378,9 +370,6 @@ namespace RVPark.Controllers
                         Phone = viewModel.NewCustomerPhone!.Trim(),
                         AccessLevel = AccessLevel.Customer,
                         IsLocked = false,
-
-                        // Temporary value used until the project's account setup
-                        // or password-reset workflow is connected.
                         PasswordHash = $"TEMP-{Guid.NewGuid():N}",
                         CreatedAt = DateTime.UtcNow
                     };
@@ -391,7 +380,16 @@ namespace RVPark.Controllers
                     customerId = newCustomer.Id;
                 }
 
-                // Create the confirmed walk-in reservation.
+                // Military Verification Note Formatting
+                var finalNotes = viewModel.SpecialRequestsOrNotes;
+                if (viewModel.IsMilitary)
+                {
+                    finalNotes = string.IsNullOrEmpty(finalNotes) 
+                        ? "[MILITARY ID VERIFIED]" 
+                        : $"[MILITARY ID VERIFIED] {finalNotes}";
+                }
+
+                // Confirmed Reservation Record Creation
                 var reservation = new Reservation
                 {
                     ReservationNumber = GenerateReservationNumber(),
@@ -402,8 +400,7 @@ namespace RVPark.Controllers
                     AdultCount = viewModel.AdultCount,
                     ChildCount = viewModel.ChildCount,
                     PetCount = viewModel.PetCount,
-                    SpecialRequestsOrNotes =
-                        viewModel.SpecialRequestsOrNotes,
+                    SpecialRequestsOrNotes = finalNotes,
                     Status = ReservationStatus.Confirmed,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -411,7 +408,7 @@ namespace RVPark.Controllers
                 _context.Reservations.Add(reservation);
                 await _context.SaveChangesAsync();
 
-                // Create the site-charge bill linked to the reservation.
+                // Linked Reservation Bill Generation
                 var bill = new Bill
                 {
                     ReservationId = reservation.Id,
@@ -425,7 +422,7 @@ namespace RVPark.Controllers
                 _context.Bills.Add(bill);
                 await _context.SaveChangesAsync();
 
-                // Record the employee-processed manual payment.
+                // Manual Payment Record Creation
                 var payment = new Payment
                 {
                     BillId = bill.Id,
@@ -453,13 +450,37 @@ namespace RVPark.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Reservations/Create
-        // This loads the public checkout page when a user clicks "Book Now"
+        // Live Pricing API Endpoint for Walk-In Form UI
         [HttpGet]
-        [Authorize(Roles = "Customer")] 
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
+        public async Task<IActionResult> CalculatePrice(int siteId, DateTime startDate, DateTime endDate)
+        {
+            if (endDate <= startDate)
+            {
+                return Json(new { success = false, message = "Check-out must be after check-in." });
+            }
+
+            var site = await _context.Sites
+                .Include(s => s.SiteType)
+                .FirstOrDefaultAsync(s => s.Id == siteId);
+
+            if (site == null || !site.IsActive || site.SiteType == null)
+            {
+                return Json(new { success = false, message = "Invalid site or missing pricing." });
+            }
+
+            var numberOfNights = (endDate.Date - startDate.Date).Days;
+            var total = site.SiteType.Price * numberOfNights;
+
+            return Json(new { success = true, total = total });
+        }
+
+        // Public Customer Checkout Page Loading
+        [HttpGet]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")] 
         public async Task<IActionResult> Create(int siteId, string checkIn, string checkOut)
         {
-            // 1. Validate the dates passed from the query string
+            // Query String Date Validation
             if (!DateTime.TryParse(checkIn, out DateTime startDate) || 
                 !DateTime.TryParse(checkOut, out DateTime endDate))
             {
@@ -467,7 +488,7 @@ namespace RVPark.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // 2. Load the site details to display on the checkout page
+            // Checkout Page Site Information Retrieval
             var site = await _context.Sites
                 .Include(s => s.SiteType)
                 .FirstOrDefaultAsync(s => s.Id == siteId);
@@ -478,7 +499,7 @@ namespace RVPark.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // 3. Prevent double-booking (double-check availability)
+            // Double Booking Availability Verification
             var siteIsReserved = await _context.Reservations
                 .AnyAsync(r => r.SiteId == siteId &&
                                r.Status != ReservationStatus.Cancelled &&
@@ -492,38 +513,37 @@ namespace RVPark.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // 4. Calculate the cost for the summary card
+            // Summary Card Cost Calculation
             var numberOfNights = (endDate.Date - startDate.Date).Days;
             var nightlyRate = site.SiteType?.Price ?? 0;
             var totalAmount = nightlyRate * numberOfNights;
 
-            // 5. Pass data to the view using ViewBag
+            // View Data Assignment
             ViewBag.Site = site;
             ViewBag.StartDate = startDate;
             ViewBag.EndDate = endDate;
             ViewBag.NumberOfNights = numberOfNights;
             ViewBag.TotalAmount = totalAmount;
 
-            // 6. Create a blank reservation model for the form
+            // Blank Reservation Model Initialization
             var reservation = new Reservation
             {
                 SiteId = siteId,
                 StartDate = startDate,
                 EndDate = endDate,
-                AdultCount = 1 // Default
+                AdultCount = 1 
             };
 
             return View(reservation);
         }
 
-        // POST: Reservations/Create
-        // This processes the checkout form submission
+        // Public Customer Checkout Form Submission
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> Create([Bind("SiteId,StartDate,EndDate,AdultCount,ChildCount,PetCount,SpecialRequestsOrNotes")] Reservation reservation)
         {
-            // Get the logged-in customer's ID
+            // Customer Context Identification
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
             var customer = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
 
@@ -532,7 +552,7 @@ namespace RVPark.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Load the site to calculate the final price
+            // Site Pricing Verification
             var site = await _context.Sites
                 .Include(s => s.SiteType)
                 .FirstOrDefaultAsync(s => s.Id == reservation.SiteId);
@@ -543,7 +563,7 @@ namespace RVPark.Controllers
                  return RedirectToAction("Index", "Home");
             }
 
-            // Final validation checks
+            // Check-out Date Validation
             if (reservation.EndDate.Date <= reservation.StartDate.Date)
             {
                  ModelState.AddModelError("EndDate", "Check-out date must be after check-in date.");
@@ -551,16 +571,16 @@ namespace RVPark.Controllers
 
             if (ModelState.IsValid)
             {
-                // Calculate pricing
+                // Pricing Assessment
                 var numberOfNights = (reservation.EndDate.Date - reservation.StartDate.Date).Days;
                 var totalAmount = (site.SiteType?.Price ?? 0) * numberOfNights;
 
-                // Begin Database Transaction
+                // Database Transaction Block Initialization
                 await using var databaseTransaction = await _context.Database.BeginTransactionAsync();
 
                 try
                 {
-                    // Save the Reservation
+                    // New Reservation Record Commit
                     reservation.CustomerId = customer.Id;
                     reservation.ReservationNumber = GenerateReservationNumber();
                     reservation.Status = ReservationStatus.Confirmed;
@@ -569,7 +589,7 @@ namespace RVPark.Controllers
                     _context.Reservations.Add(reservation);
                     await _context.SaveChangesAsync();
 
-                    // Save the Bill
+                    // Generated Bill Commitment
                     var bill = new Bill
                     {
                         ReservationId = reservation.Id,
@@ -582,12 +602,12 @@ namespace RVPark.Controllers
                     _context.Bills.Add(bill);
                     await _context.SaveChangesAsync();
 
-                    // Save the Payment (Simulating successful Stripe checkout for now)
+                    // Simulated Payment Gateway Commitment
                     var payment = new Payment
                     {
                         BillId = bill.Id,
                         PaymentMethod = PaymentMethod.Stripe,
-                        StripeTransactionId = $"sim_txn_{Guid.NewGuid():N}", // Placeholder
+                        StripeTransactionId = $"sim_txn_{Guid.NewGuid():N}", 
                         Notes = "Online booking payment",
                         Amount = totalAmount,
                         PaidAt = DateTime.UtcNow
@@ -596,12 +616,11 @@ namespace RVPark.Controllers
                     _context.Payments.Add(payment);
                     await _context.SaveChangesAsync();
 
-                    // Commit everything
+                    // Final Transaction Persistence
                     await databaseTransaction.CommitAsync();
 
                     TempData["SuccessMessage"] = $"Booking confirmed! Your reservation number is {reservation.ReservationNumber}.";
                     
-                    // Redirect to the customer's dashboard
                     return RedirectToAction(nameof(MyReservations));
                 }
                 catch
@@ -611,7 +630,7 @@ namespace RVPark.Controllers
                 }
             }
 
-            // If we get here, validation failed. Reload the ViewBag data for the view.
+            // Form Rejection Render Variables Payload
             ViewBag.Site = site;
             ViewBag.StartDate = reservation.StartDate;
             ViewBag.EndDate = reservation.EndDate;
@@ -621,7 +640,7 @@ namespace RVPark.Controllers
             return View(reservation);
         }
 
-        // GET: Load the real reservation for the customer to edit
+        // Active Customer Reservation Editor Loading
         [HttpGet]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> EditMyTrip(int id)
@@ -635,7 +654,7 @@ namespace RVPark.Controllers
                 return NotFound();
             }
 
-            // SERVER BLOCK: Do not allow loading the edit form for past/active trips
+            // Past Booking Modification Protection
             if (reservation.StartDate.Date <= DateTime.Today)
             {
                 TempData["ErrorMessage"] = "Trips that have already started or passed cannot be modified.";
@@ -645,16 +664,16 @@ namespace RVPark.Controllers
             return View(reservation);
         }
 
-        // POST: Save the customer's changes to the database
+        // Active Customer Reservation Database Modification Form
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> EditMyTrip(int id, [Bind("StartDate,EndDate")] Reservation updateParams)
         {
-            // SERVER VALIDATION: Check-out must be AFTER check-in
+            // Chronological Validation Logic
             if (updateParams.EndDate <= updateParams.StartDate)
             {
-                TempData["ErrorMessage"] = "Check-out date must be after your Check-in date.";
+                TempData["ErrorMessage"] = "Check-out date must be after your check-in date.";
                 return RedirectToAction(nameof(EditMyTrip), new { id = id });
             }
 
@@ -662,11 +681,26 @@ namespace RVPark.Controllers
 
             if (reservation != null)
             {
-                // SERVER BLOCK: Double check they aren't hacking a past trip
+                // Historic Record Manipulation Block
                 if (reservation.StartDate.Date <= DateTime.Today)
                 {
                     TempData["ErrorMessage"] = "Trips that have already started or passed cannot be modified.";
                     return RedirectToAction(nameof(MyReservations));
+                }
+
+                // Overlapping Reservation Conflict Verification
+                var siteIsReserved = await _context.Reservations
+                    .AnyAsync(r => r.SiteId == reservation.SiteId &&
+                                   r.Id != reservation.Id && 
+                                   r.Status != ReservationStatus.Cancelled &&
+                                   r.Status != ReservationStatus.Completed &&
+                                   r.StartDate < updateParams.EndDate.Date &&
+                                   r.EndDate > updateParams.StartDate.Date);
+
+                if (siteIsReserved)
+                {
+                    TempData["ErrorMessage"] = "Those dates conflict with another booking for this site. Please choose different dates.";
+                    return RedirectToAction(nameof(EditMyTrip), new { id = id });
                 }
 
                 reservation.StartDate = updateParams.StartDate;
@@ -680,7 +714,7 @@ namespace RVPark.Controllers
             return RedirectToAction(nameof(MyReservations));
         }
 
-        // POST: Cancels a customer's reservation
+        // Customer Initiated Cancellation Submission
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")]
@@ -690,7 +724,7 @@ namespace RVPark.Controllers
 
             if (reservation != null)
             {
-                // SERVER BLOCK: Prevent cancelling a trip that already started
+                // Started Trip Deletion Prevention
                 if (reservation.StartDate.Date <= DateTime.Today)
                 {
                     TempData["ErrorMessage"] = "Trips that have already started or passed cannot be cancelled.";
@@ -708,8 +742,9 @@ namespace RVPark.Controllers
             return RedirectToAction(nameof(MyReservations));
         }
 
-        // Returns active sites that do not overlap another reservation.
+        // Active Non-Overlapping Site Search Query
         [HttpGet]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> GetAvailableSites(
             DateTime startDate,
             DateTime endDate,
@@ -739,8 +774,7 @@ namespace RVPark.Controllers
             return Json(availableSites);
         }
 
-        // Populates the customer, site, and payment-method dropdowns used by
-        // the employee walk-in reservation form.
+        // Form Select Item Preloading Assembly
         private async Task PopulateEmployeeCreateOptionsAsync(
             int? selectedCustomerId = null,
             int? selectedSiteId = null,
@@ -788,7 +822,7 @@ namespace RVPark.Controllers
                 .ToList();
         }
 
-        // Generates a readable reservation number with a date and random suffix.
+        // Unique Identifier Prefix Assembly
         private static string GenerateReservationNumber()
         {
             var randomPart = Guid.NewGuid()

@@ -6,7 +6,7 @@ using RVPark.Models;
 
 namespace RVPark.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Manager, Admin")]
     public class PricingController : Controller
     {
         private readonly ApplicationDbContext _context;

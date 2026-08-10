@@ -77,7 +77,7 @@ namespace RVPark.Controllers
                 }
                 else if (foundUser.AccessLevel is AccessLevel.Employee)
                 {
-                    return RedirectToAction("Index", "Employees");
+                    return RedirectToAction("Index", "Dashboard");
                 }
             }
 
@@ -169,6 +169,13 @@ namespace RVPark.Controllers
                 RedirectUri = "/Home/Index"
             };
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, properties);
+        }
+
+        // Unauthorized Role Redirection Handling
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
     }
 }
