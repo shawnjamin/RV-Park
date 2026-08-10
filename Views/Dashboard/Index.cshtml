@@ -22,7 +22,7 @@
                     <h6 class="text-muted text-uppercase fw-bold mb-0">Today's Check-ins</h6>
                     <i class="fs-4 bi-box-arrow-in-right text-primary"></i>
                 </div>
-                <h2 class="fw-bold mb-0">12</h2>
+                <h2 class="fw-bold mb-0">@ViewBag.TodaysCheckIns</h2>
             </div>
         </div>
     </div>
@@ -34,7 +34,7 @@
                     <h6 class="text-muted text-uppercase fw-bold mb-0">Active Sites</h6>
                     <i class="fs-4 bi-geo-alt text-success"></i>
                 </div>
-                <h2 class="fw-bold mb-0">45 / 50</h2>
+                <h2 class="fw-bold mb-0">@ViewBag.ActiveSites / @ViewBag.TotalSites</h2>
             </div>
         </div>
     </div>
@@ -46,7 +46,7 @@
                     <h6 class="text-muted text-uppercase fw-bold mb-0">Pending Payments</h6>
                     <i class="fs-4 bi-cash text-warning"></i>
                 </div>
-                <h2 class="fw-bold mb-0">4</h2>
+                <h2 class="fw-bold mb-0">@ViewBag.PendingPayments</h2>
             </div>
         </div>
     </div>
@@ -58,7 +58,7 @@
                     <h6 class="text-muted text-uppercase fw-bold mb-0">Needs Attention</h6>
                     <i class="fs-4 bi-exclamation-triangle text-danger"></i>
                 </div>
-                <h2 class="fw-bold mb-0">1</h2>
+                <h2 class="fw-bold mb-0">@ViewBag.NeedsAttention</h2>
             </div>
         </div>
     </div>

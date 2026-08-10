@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace RVPark.Controllers
 {
-    [Authorize(Roles = "Employee, Manager, Admin")]
+    // Require authentication for all endpoints in this controller, but restrict roles per-action
+    [Authorize]
     public class ReservationsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -50,8 +51,8 @@ namespace RVPark.Controllers
             return View(myTrips);
         }
 
-        // Administrator and Employee Index Search View
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        // Administrator and Employee Index Search View (Restricted to Staff/Admin)
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> Index(string searchQuery)
         {
             var reservations = _context.Reservations
@@ -76,8 +77,8 @@ namespace RVPark.Controllers
                 .ToListAsync());
         }
 
-        // Administrator Edit View Loading
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        // Administrator Edit View Loading (Restricted to Staff/Admin)
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null)
@@ -105,10 +106,10 @@ namespace RVPark.Controllers
             return View(reservation);
         }
 
-        // Administrator Edit Save Submission
+        // Administrator Edit Save Submission (Restricted to Staff/Admin)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> Edit(
             int id,
             [Bind("Id,StartDate,EndDate,SiteId")] Reservation updateParams)
@@ -147,10 +148,10 @@ namespace RVPark.Controllers
             }
         }
 
-        // Administrator Cancel Submission
+        // Administrator Cancel Submission (Restricted to Staff/Admin)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> Cancel(int id)
         {
             var reservation = await _context.Reservations.FindAsync(id);
@@ -175,7 +176,7 @@ namespace RVPark.Controllers
 
         // Employee Walk-In Form Loading
         [HttpGet]
-        [Authorize(Roles = "Employee, Manager, Admin")]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> EmployeeCreate()
         {
             await PopulateEmployeeCreateOptionsAsync();
@@ -193,7 +194,7 @@ namespace RVPark.Controllers
         // Employee Walk-In Form Submission
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Employee, Manager, Admin")]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> EmployeeCreate(
             EmployeeReservationFormViewModel viewModel)
         {
@@ -451,7 +452,7 @@ namespace RVPark.Controllers
 
         // Live Pricing API Endpoint for Walk-In Form UI
         [HttpGet]
-        [Authorize(Roles = "Manager, Admin, Employee")]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> CalculatePrice(int siteId, DateTime startDate, DateTime endDate)
         {
             if (endDate <= startDate)
@@ -476,7 +477,7 @@ namespace RVPark.Controllers
 
         // Public Customer Checkout Page Loading
         [HttpGet]
-        [Authorize(Roles = "Customer")] 
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")] 
         public async Task<IActionResult> Create(int siteId, string checkIn, string checkOut)
         {
             // Query String Date Validation
@@ -539,7 +540,7 @@ namespace RVPark.Controllers
         // Public Customer Checkout Form Submission
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer, Employee, Manager, Admin")]
         public async Task<IActionResult> Create([Bind("SiteId,StartDate,EndDate,AdultCount,ChildCount,PetCount,SpecialRequestsOrNotes")] Reservation reservation)
         {
             // Customer Context Identification
@@ -743,6 +744,7 @@ namespace RVPark.Controllers
 
         // Active Non-Overlapping Site Search Query
         [HttpGet]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
         public async Task<IActionResult> GetAvailableSites(
             DateTime startDate,
             DateTime endDate,
