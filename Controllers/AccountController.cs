@@ -77,7 +77,7 @@ namespace RVPark.Controllers
                 }
                 else if (foundUser.AccessLevel is AccessLevel.Employee)
                 {
-                    return RedirectToAction("Index", "Employees");
+                    return RedirectToAction("Index", "Dashboard");
                 }
             }
 

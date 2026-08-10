@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace RVPark.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Employee, Manager, Admin")]
     public class ReservationsController : Controller
     {
         private readonly ApplicationDbContext _context;
