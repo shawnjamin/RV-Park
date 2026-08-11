@@ -1,4 +1,232 @@
+@model RVPark.Models.Reservation
 @{
-    ViewData["Title"] = "Checkout With Stripe";
+ViewData["Title"] = "Checkout";
     Layout = "_Layout";
 }
+
+@* Checkout page header *@
+
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h2>Complete Your Reservation</h2>
+        <p class="text-muted mb-0">Review your reservation details before completing payment.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to Search</a>
+</div>
+
+@* Page body *@
+
+<div class="row g-4">
+
+```
+@* Reservation Details Panel *@
+<div class="col-lg-8">
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Reservation Details</h5>
+        </div>
+
+        <div class="card-body p-4">
+
+            @* Stay Information *@
+            <h5 class="border-bottom pb-2 mb-3">1. Stay Information</h5>
+
+            <div class="row mb-4">
+
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="card bg-light border-0 h-100">
+                        <div class="card-body">
+                            <span class="text-muted small">Check-In</span>
+                            <h5 class="mb-0">August 15, 2026</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card bg-light border-0 h-100">
+                        <div class="card-body">
+                            <span class="text-muted small">Check-Out</span>
+                            <h5 class="mb-0">August 18, 2026</h5>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* Site Information *@
+            <h5 class="border-bottom pb-2 mb-3">2. Site Information</h5>
+
+            <div class="row mb-4">
+
+                <div class="col-md-8">
+                    <label class="form-label text-muted small mb-1">Assigned Site</label>
+                    <h5 class="mb-1">A-12</h5>
+                    <p class="text-muted mb-0">Premium Pull-Through</p>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label text-muted small mb-1">Stay Length</label>
+                    <h5 class="mb-1">3 Nights</h5>
+                    <p class="text-muted mb-0">$50.00 / night</p>
+                </div>
+
+            </div>
+
+            @* Guest Information *@
+            <h5 class="border-bottom pb-2 mb-3">3. Guest Information</h5>
+
+            <div class="row mb-4">
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted small">Guest Name</label>
+                    <p class="fw-bold mb-0">John Smith</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted small">Email</label>
+                    <p class="fw-bold mb-0">john@example.com</p>
+                </div>
+
+            </div>
+
+            <hr class="my-4" />
+
+            @* Payment Information *@
+            <h5 class="border-bottom pb-2 mb-3">4. Payment</h5>
+
+            <div class="alert alert-light border mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-credit-card fs-3"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">Secure Payment with Stripe</h6>
+                        <p class="text-muted small mb-0">
+                            You will be securely redirected to Stripe to enter your payment information.
+                            Your card details are never stored on this website.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            @* Stripe checkout button will eventually submit to the
+               controller action that creates the Stripe Checkout Session. *@
+            <form asp-action="CreateCheckoutSession" method="post">
+
+                <input type="hidden" asp-for="Id" />
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-success btn-lg px-5">
+                        <i class="bi bi-lock-fill me-2"></i>
+                        Proceed to Secure Payment
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+@* Order Summary Panel *@
+<div class="col-lg-4">
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Reservation Summary</h5>
+        </div>
+
+        <div class="card-body bg-light">
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Site</span>
+                    <strong>A-12</strong>
+                </div>
+                <div class="text-muted small">
+                    Premium Pull-Through
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>Nightly Rate:</span>
+                <strong>$50.00</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>Number of Nights:</span>
+                <strong>3</strong>
+            </div>
+
+            <hr />
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>Subtotal:</span>
+                <strong>$150.00</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>Taxes & Fees:</span>
+                <strong>$15.00</strong>
+            </div>
+
+            <hr />
+
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fs-5 fw-bold">Total:</span>
+                <span class="fs-3 fw-bold">$165.00</span>
+            </div>
+
+        </div>
+    </div>
+
+
+    @* Reservation Information Card *@
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Before You Pay</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="d-flex mb-3">
+                <i class="bi bi-calendar-check text-primary fs-5 me-3"></i>
+                <div>
+                    <strong>Review your dates</strong>
+                    <p class="text-muted small mb-0">
+                        Make sure your check-in and check-out dates are correct.
+                    </p>
+                </div>
+            </div>
+
+            <div class="d-flex mb-3">
+                <i class="bi bi-pin-map text-primary fs-5 me-3"></i>
+                <div>
+                    <strong>Confirm your site</strong>
+                    <p class="text-muted small mb-0">
+                        Verify that the selected RV site meets your needs.
+                    </p>
+                </div>
+            </div>
+
+            <div class="d-flex">
+                <i class="bi bi-shield-lock text-primary fs-5 me-3"></i>
+                <div>
+                    <strong>Secure payment</strong>
+                    <p class="text-muted small mb-0">
+                        Payment information is securely processed by Stripe.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+```
+
+</div>
