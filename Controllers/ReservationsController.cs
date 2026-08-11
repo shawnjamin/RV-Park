@@ -440,14 +440,14 @@ namespace RVPark.Controllers
 
                 TempData["SuccessMessage"] =
                     $"Reservation {reservation.ReservationNumber} was created successfully.";
+
+                return RedirectToAction(nameof(Edit), new { id = reservation.Id });
             }
             catch
             {
                 await databaseTransaction.RollbackAsync();
                 throw;
             }
-
-            return RedirectToAction(nameof(Index));
         }
 
         // Live Pricing API Endpoint for Walk-In Form UI
