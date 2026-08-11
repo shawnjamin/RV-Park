@@ -16,53 +16,39 @@
     @* Only displays the Print Report button when the report contains at least one reservation. *@
     @if (Model.Reservations.Any())
     {
-        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+        <button type="button" class="btn btn-outline-secondary no-print" onclick="window.print()">
             Print Report
         </button>
     }
 </div>
 
 @* ---------- Report Filter Form ---------- *@
-<div class="card shadow-sm border-0 mb-4">
+<div class="card shadow-sm border-0 mb-4 no-print">
     <div class="card-body">
-        @*
-            Submits the selected date range to the Index action
-            using query-string parameters instead of a POST request.
-        *@
         <form asp-action="Index" method="get" class="row g-3 align-items-end">
 
-            @*
-                Displays model-level validation errors,
-                such as an end date that occurs before the start date.
-            *@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            @* ---------- Start Date Field ---------- *@
             <div class="col-md-4">
                 <label asp-for="StartDate" class="form-label fw-bold"></label>
                 <input asp-for="StartDate" class="form-control" type="date" />
             </div>
 
-            @* ---------- End Date Field ---------- *@
             <div class="col-md-4">
                 <label asp-for="EndDate" class="form-label fw-bold"></label>
                 <input asp-for="EndDate" class="form-control" type="date" />
             </div>
 
-            @* ---------- Filter Actions ---------- *@
             <div class="col-md-4">
                 <button type="submit" class="btn btn-primary">
                     Generate Report
                 </button>
 
-                @* 
-                    Reloads the Index action without date parameters,
-                    clearing the current report filters.
-                *@
                 <a asp-action="Index" class="btn btn-outline-secondary">
                     Clear
                 </a>
             </div>
+
         </form>
     </div>
 </div>
@@ -71,7 +57,7 @@
 @if (Model.StartDate is null || Model.EndDate is null)
 {
     @* Displayed before a complete date range has been selected. *@
-    <div class="alert alert-info">
+    <div class="alert alert-info no-print">
         Enter a start date and end date to generate a reservation report.
     </div>
 }
@@ -81,28 +67,53 @@ else if (!Model.Reservations.Any())
         Displayed when the selected date range is valid
         but no matching reservations were returned.
     *@
-    <div class="alert alert-warning">
+    <div class="alert alert-warning no-print">
         No reservations found for the selected date range.
     </div>
 }
 else
 {
     @* ---------- Report Results Heading ---------- *@
-    <div class="mb-3">
-        <h5>
-            Report Results:
-            @Model.StartDate.Value.ToString("MM/dd/yyyy")
-            -
-            @Model.EndDate.Value.ToString("MM/dd/yyyy")
-        </h5>
-    </div>
 
+    <div class="mb-4 print-only">
+        <h2>Reservation Report</h2>
+
+        @if (Model.StartDate.HasValue || Model.EndDate.HasValue)
+        {
+            <p>
+                <strong>Date Range:</strong>
+
+                @if (Model.StartDate.HasValue)
+                {
+                    @Model.StartDate.Value.ToString("MM/dd/yyyy")
+                }
+                else
+                {
+                    <span>Beginning</span>
+                }
+
+                <span> - </span>
+
+                @if (Model.EndDate.HasValue)
+                {
+                    @Model.EndDate.Value.ToString("MM/dd/yyyy")
+                }
+                else
+                {
+                    <span>Present</span>
+                }
+            </p>
+        }
+    </div>
+    
     @* ---------- Reservation Status Groups ---------- *@
     
     @*
         Groups report rows by their simplified report status, such as
         Completed, In Progress, Upcoming, or Cancelled.
     *@
+
+
     @foreach (var statusGroup in Model.Reservations.GroupBy(reservation => reservation.ReportStatus))
     {
         <div class="card shadow-sm border-0 mb-4">
@@ -160,3 +171,43 @@ else
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+
+<style>
+    .print-only {
+        display: none;
+    }
+
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+
+        .print-only {
+            display: block !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+
+        th,
+        td {
+            border: 1px solid black !important;
+            padding: 6px !important;
+        }
+
+        tr {
+            page-break-inside: avoid;
+        }
+    }
+</style>

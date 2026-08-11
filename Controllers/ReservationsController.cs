@@ -484,8 +484,8 @@ namespace RVPark.Controllers
             if (!DateTime.TryParse(checkIn, out DateTime startDate) || 
                 !DateTime.TryParse(checkOut, out DateTime endDate))
             {
-                TempData["ErrorMessage"] = "Invalid dates selected. Please search again.";
-                return RedirectToAction("Index", "Home");
+                TempData["ErrorMessage"] = "Please select a valid Check-In and Check-Out Date";
+                return RedirectToAction("Browse", "RVSites");
             }
 
             // Checkout Page Site Information Retrieval
