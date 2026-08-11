@@ -2,7 +2,16 @@
 
 @{
     ViewData["Title"] = "Reservation Details";
-    // Uses your standard layout
+
+    //Dynamically render the correct shell/sidebar based on the user's role
+    if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Staff") || User.IsInRole("Employee"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
 }
 
 <div class="py-4">
@@ -164,8 +173,18 @@
     </div>
 
     <div class="mt-4 mb-5">
-        <a href="javascript:history.back()" class="btn btn-outline-secondary px-4">
-            <i class="fa-solid fa-arrow-left me-2"></i> Back
-        </a>
+        @* Replaced history.back() with direct routing to bypass Resubmission errors *@
+        @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Staff") || User.IsInRole("Employee"))
+        {
+            <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                <i class="fa-solid fa-arrow-left me-2"></i> Back to Reservations
+            </a>
+        }
+        else
+        {
+            <a asp-action="MyReservations" class="btn btn-outline-secondary px-4">
+                <i class="fa-solid fa-arrow-left me-2"></i> Back to My Trips
+            </a>
+        }
     </div>
 </div>
