@@ -191,9 +191,17 @@
                             <option value="">-- Select Payment Method --</option>
                             <option value="Cash">Cash</option>
                             <option value="Check">Check</option>
-                            <option value="ManualCard">Manual Credit Card Entry</option>
+                            <option value="Card">Manual Credit Card Entry</option>
                         </select>
                         <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                    </div>
+
+                    <div id="manualCardSection" class="mb-4 d-none">
+                        <button type="button"
+                                class="btn btn-outline-primary w-100"
+                                id="manualCardButton">
+                            Go to Manual Card Entry
+                        </button>
                     </div>
 
                     <div id="cashCalculatorSection" class="mb-4 d-none p-3 bg-white border rounded border-warning">
@@ -255,12 +263,22 @@
 
             // Cash Calculator Logic
             $('#paymentMethodSelect').on('change', function() {
-                if($(this).val() === 'Cash') {
+                const paymentMethod = $(this).val();
+
+                // Cash
+                if (paymentMethod === 'Cash') {
                     $('#cashCalculatorSection').removeClass('d-none');
                 } else {
                     $('#cashCalculatorSection').addClass('d-none');
                     $('#amountTendered').val('');
                     $('#changeDueDisplay').text('$0.00');
+                }
+
+                // Manual Card
+                if (paymentMethod === 'Card') {
+                    $('#manualCardSection').removeClass('d-none');
+                } else {
+                    $('#manualCardSection').addClass('d-none');
                 }
             });
 
