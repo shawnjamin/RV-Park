@@ -33,10 +33,18 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RVPark.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        /* Override ASP.NET Core's default 60px body margin */
+        body {
+            margin-bottom: 0 !important;
+            overflow-x: hidden; /* Prevents horizontal scrolling from Bootstrap rows */
+        }
+    </style>
 </head>
 <body>
 
-@* Mobile Header Bar with Collapsible Hamburger Toggle (Visible on mobile screens only) *@
+@* Mobile Header Bar with Collapsible Hamburger Toggle *@
 <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-2 shadow d-md-none">
     <a class="navbar-brand me-0 px-2 fw-bold fs-5" asp-controller="Dashboard" asp-action="Index">Admin Portal</a>
     <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,13 +53,14 @@
 </header>
 
 <div class="container-fluid">
-    <div class="row">
+    @* FIX 1: Moved min-vh-100 to the Row wrapper so columns stretch equally *@
+    <div class="row min-vh-100">
 
         @* Sidebar Navigation *@
-        <nav id="sidebarMenu" class="col-md-3 col-xl-2 d-md-block bg-dark sidebar collapse min-vh-100">
+        <nav id="sidebarMenu" class="col-md-3 col-xl-2 d-md-block bg-dark sidebar collapse">
             <div class="position-sticky pt-3 d-flex flex-column h-100">
 
-                @* Desktop Portal Title Header (Hidden on small mobile screens) *@
+                @* Desktop Portal Title Header *@
                 <div class="px-3 pb-3 mb-md-0 me-md-auto text-white d-none d-md-block">
                     <a asp-controller="Dashboard" asp-action="Index" class="text-white text-decoration-none">
                         <span class="fs-4 fw-bold">Admin Portal</span>
@@ -132,7 +141,7 @@
         </nav>
 
         @* Main Content Area *@
-        <main class="col-md-9 ms-sm-auto col-xl-10 px-md-4 py-4 d-flex flex-column min-vh-100">
+        <main class="col-md-9 ms-sm-auto col-xl-10 px-md-4 py-4 d-flex flex-column">
             <div class="flex-grow-1">
                 @* Global Status Banners *@
                 @if (TempData["SuccessMessage"] is string successMessage)
@@ -154,10 +163,9 @@
                 @RenderBody()
             </div>
 
-            <footer class="border-top footer text-muted pt-3 mt-auto">
-                <div class="container-fluid text-center text-sm-start">
-                    &copy; 2026 - RVPark - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                </div>
+            @* FIX 2: Removed the generic "footer" class to stop ASP.NET absolute positioning. Added text-center. *@
+            <footer class="border-top text-muted py-3 mt-auto text-center">
+                &copy; 2026 - RVPark - <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-decoration-none">Privacy</a>
             </footer>
         </main>
 
