@@ -1,0 +1,158 @@
+@{
+    ViewData["Title"] = "Manual Card Entry";
+    Layout = "_AdminLayout";
+
+    var amountDue = ViewBag.AmountDue ?? 0m;
+    var reservationId = ViewBag.ReservationId ?? 0;
+}
+
+<div class="container-fluid">
+
+    @* ---------- Page Header ---------- *@
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Manual Card Entry</h2>
+            <p class="text-muted mb-0">
+                Record an employee-assisted card payment.
+            </p>
+        </div>
+
+        <a asp-action="EmployeeCreate"
+           class="btn btn-outline-secondary">
+            Back
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        Payment Information
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+
+                    @* ---------- Amount Due ---------- *@
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            Amount Due
+                        </label>
+
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+
+                            <input type="text"
+                                   class="form-control fw-bold"
+                                   value="@Convert.ToDecimal(amountDue).ToString("0.00")"
+                                   readonly />
+                        </div>
+
+                        <div class="form-text">
+                            Amount due is calculated from the reservation and cannot be changed manually.
+                        </div>
+                    </div>
+
+                    @* ---------- Manual Card Form ---------- *@
+                    <form asp-controller="Reservations"
+                          asp-action="ProcessManualCard"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="reservationId"
+                               value="@reservationId" />
+
+                        <div class="mb-3">
+                            <label for="cardholderName"
+                                   class="form-label fw-bold">
+                                Cardholder Name
+                            </label>
+
+                            <input type="text"
+                                   id="cardholderName"
+                                   name="cardholderName"
+                                   class="form-control"
+                                   maxlength="100"
+                                   required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="lastFourDigits"
+                                   class="form-label fw-bold">
+                                Last 4 Digits
+                            </label>
+
+                            <input type="text"
+                                   id="lastFourDigits"
+                                   name="lastFourDigits"
+                                   class="form-control"
+                                   inputmode="numeric"
+                                   maxlength="4"
+                                   pattern="[0-9]{4}"
+                                   placeholder="1234"
+                                   required />
+
+                            <div class="form-text">
+                                Enter only the final four digits of the card.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="referenceNumber"
+                                   class="form-label fw-bold">
+                                Terminal / Authorization Reference
+                            </label>
+
+                            <input type="text"
+                                   id="referenceNumber"
+                                   name="referenceNumber"
+                                   class="form-control"
+                                   maxlength="100"
+                                   placeholder="Example: AUTH-123456"
+                                   required />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="paymentNotes"
+                                   class="form-label fw-bold">
+                                Payment Notes
+                            </label>
+
+                            <textarea id="paymentNotes"
+                                      name="paymentNotes"
+                                      class="form-control"
+                                      rows="3"
+                                      maxlength="500"
+                                      placeholder="Optional payment notes..."></textarea>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>Card Security:</strong>
+                            Do not enter or store the full card number, expiration date, or CVV in this application.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit"
+                                    class="btn btn-success btn-lg fw-bold">
+                                Confirm Card Payment
+                            </button>
+
+                            <a asp-action="EmployeeCreate"
+                               class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
