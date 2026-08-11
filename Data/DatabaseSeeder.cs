@@ -474,11 +474,25 @@ public static class DatabaseSeeder
     {
         var seedBills = new[]
         {
-            new BillSeed("seed:bill:site-charge:SEED-RES-1001", "SEED-RES-1001", BillType.SiteCharge, 255.00m),
-            new BillSeed("seed:bill:late-fee:SEED-RES-1003", "SEED-RES-1003", BillType.LateFee, 25.00m),
-            new BillSeed("seed:bill:cancellation-fee:SEED-RES-1005", "SEED-RES-1005", BillType.CancellationFee, 35.00m),
-            new BillSeed("seed:bill:early-check-in:SEED-RES-1002", "SEED-RES-1002", BillType.EarlyCheckInFee, 15.00m),
-            new BillSeed("seed:bill:late-check-out:SEED-RES-1004", "SEED-RES-1004", BillType.LateCheckOutFee, 20.00m)
+            // Seed every reservation with its mathematically correct Site Charge 
+            new BillSeed("seed:bill:site:1001", "SEED-RES-1001", BillType.SiteCharge, 255.00m),
+            new BillSeed("seed:bill:site:1002", "SEED-RES-1002", BillType.SiteCharge, 165.00m),
+            new BillSeed("seed:bill:site:1003", "SEED-RES-1003", BillType.SiteCharge, 105.00m),
+            new BillSeed("seed:bill:site:1004", "SEED-RES-1004", BillType.SiteCharge, 165.00m),
+            new BillSeed("seed:bill:site:1005", "SEED-RES-1005", BillType.SiteCharge, 110.00m),
+            new BillSeed("seed:bill:site:1006", "SEED-RES-1006", BillType.SiteCharge, 340.00m),
+            new BillSeed("seed:bill:site:1007", "SEED-RES-1007", BillType.SiteCharge, 165.00m),
+            new BillSeed("seed:bill:site:1008", "SEED-RES-1008", BillType.SiteCharge, 70.00m),
+            new BillSeed("seed:bill:site:1009", "SEED-RES-1009", BillType.SiteCharge, 110.00m),
+            new BillSeed("seed:bill:site:1010", "SEED-RES-1010", BillType.SiteCharge, 105.00m),
+            new BillSeed("seed:bill:site:1011", "SEED-RES-1011", BillType.SiteCharge, 255.00m),
+            new BillSeed("seed:bill:site:1012", "SEED-RES-1012", BillType.SiteCharge, 220.00m),
+
+            // Add some miscellaneous incidentals for variety
+            new BillSeed("seed:bill:fee:1002", "SEED-RES-1002", BillType.EarlyCheckInFee, 15.00m),
+            new BillSeed("seed:bill:fee:1003", "SEED-RES-1003", BillType.LateFee, 25.00m),
+            new BillSeed("seed:bill:fee:1004", "SEED-RES-1004", BillType.LateCheckOutFee, 20.00m),
+            new BillSeed("seed:bill:fee:1005", "SEED-RES-1005", BillType.CancellationFee, 35.00m)
         };
 
         foreach (var seedBill in seedBills)
@@ -517,10 +531,40 @@ public static class DatabaseSeeder
     {
         var seedPayments = new[]
         {
-            new PaymentSeed("seed:payment:card:SEED-RES-1001", "seed:bill:site-charge:SEED-RES-1001", PaymentMethod.Card, 255.00m, null),
-            new PaymentSeed("seed:payment:cash:SEED-RES-1003", "seed:bill:late-fee:SEED-RES-1003", PaymentMethod.Cash, 25.00m, null),
-            new PaymentSeed("seed:payment:check:SEED-RES-1002", "seed:bill:early-check-in:SEED-RES-1002", PaymentMethod.Check, 15.00m, null),
-            new PaymentSeed("seed:payment:stripe:SEED-RES-1004", "seed:bill:late-check-out:SEED-RES-1004", PaymentMethod.Stripe, 20.00m, "seed_stripe_seed_res_1004")
+            // 1001 (PendingPayment): Partial deposit paid, owes balance
+            new PaymentSeed("seed:pay:1001", "seed:bill:site:1001", PaymentMethod.Card, 50.00m, null),
+            
+            // 1002 (Confirmed): Paid in full (Site + Early fee)
+            new PaymentSeed("seed:pay:site:1002", "seed:bill:site:1002", PaymentMethod.Stripe, 165.00m, "stripe_txn_1002"),
+            new PaymentSeed("seed:pay:fee:1002", "seed:bill:fee:1002", PaymentMethod.Card, 15.00m, null),
+
+            // 1003 (Checked In): Paid for site, but has an unpaid late fee of $25
+            new PaymentSeed("seed:pay:site:1003", "seed:bill:site:1003", PaymentMethod.Cash, 105.00m, null),
+
+            // 1004 (Completed): Paid in full (Site + Late Checkout)
+            new PaymentSeed("seed:pay:site:1004", "seed:bill:site:1004", PaymentMethod.Stripe, 165.00m, "stripe_txn_1004"),
+            new PaymentSeed("seed:pay:fee:1004", "seed:bill:fee:1004", PaymentMethod.Cash, 20.00m, null),
+
+            // 1005 (Cancelled): Paid cancellation fee 
+            new PaymentSeed("seed:pay:fee:1005", "seed:bill:fee:1005", PaymentMethod.Card, 35.00m, null),
+
+            // 1006 (Confirmed): Paid in full
+            new PaymentSeed("seed:pay:site:1006", "seed:bill:site:1006", PaymentMethod.Stripe, 340.00m, "stripe_txn_1006"),
+
+            // 1007 (PendingPayment): $0 paid, owes full amount 
+            
+            // 1008 (Completed): Paid in full
+            new PaymentSeed("seed:pay:site:1008", "seed:bill:site:1008", PaymentMethod.Stripe, 70.00m, "stripe_txn_1008"),
+
+            // 1009 (Cancelled): $0 paid
+
+            // 1010 (Confirmed): Paid in full
+            new PaymentSeed("seed:pay:site:1010", "seed:bill:site:1010", PaymentMethod.Card, 105.00m, null),
+
+            // 1011 (Completed): Paid in full
+            new PaymentSeed("seed:pay:site:1011", "seed:bill:site:1011", PaymentMethod.Stripe, 255.00m, "stripe_txn_1011")
+
+            // 1012 (PendingPayment): $0 paid, owes full amount
         };
 
         foreach (var seedPayment in seedPayments)
