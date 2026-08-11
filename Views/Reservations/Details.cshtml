@@ -1,0 +1,171 @@
+@model RVPark.Models.Reservation
+
+@{
+    ViewData["Title"] = "Reservation Details";
+    // Uses your standard layout
+}
+
+<div class="py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold mb-1">Reservation #@Model.ReservationNumber</h2>
+            <p class="text-muted mb-0">Booked on @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+        </div>
+        <div>
+            @if (Model.Status == RVPark.Models.ReservationStatus.Cancelled)
+            {
+                <span class="badge bg-danger fs-5 px-3 py-2">Cancelled</span>
+            }
+            else if (Model.Status == RVPark.Models.ReservationStatus.Completed)
+            {
+                <span class="badge bg-secondary fs-5 px-3 py-2">Completed</span>
+            }
+            else
+            {
+                <span class="badge bg-success fs-5 px-3 py-2">@Model.Status</span>
+            }
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 border-top border-3 border-primary">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-user text-primary me-2"></i>Customer Details</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Name:</strong> @Model.User?.FirstName @Model.User?.LastName</p>
+                    <p class="mb-2"><strong>Email:</strong> @Model.User?.Email</p>
+                    <p class="mb-0"><strong>Phone:</strong> @(Model.User?.Phone ?? "N/A")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 border-top border-3 border-info">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-campground text-info me-2"></i>Trip Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <span class="text-muted small d-block">Check-in</span>
+                            <span class="fw-bold">@Model.StartDate.ToString("MMM dd, yyyy")</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted small d-block">Check-out</span>
+                            <span class="fw-bold">@Model.EndDate.ToString("MMM dd, yyyy")</span>
+                        </div>
+                    </div>
+                    <p class="mb-2"><strong>Site:</strong> #@Model.Site?.SiteNumber</p>
+                    <p class="mb-2"><strong>Guests:</strong> @Model.AdultCount Adult(s), @Model.ChildCount Child(ren), @Model.PetCount Pet(s)</p>
+                    @if (!string.IsNullOrEmpty(Model.SpecialRequestsOrNotes))
+                    {
+                        <p class="mb-0"><strong>Notes:</strong> @Model.SpecialRequestsOrNotes</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @{
+        decimal totalBilled = Model.Bills?.Sum(b => b.Amount) ?? 0;
+        decimal totalPaid = Model.Bills?.SelectMany(b => b.Payments ?? new List<RVPark.Models.Payment>()).Sum(p => p.Amount) ?? 0;
+        decimal remainingBalance = totalBilled - totalPaid;
+        
+        string balanceBadgeClass = remainingBalance <= 0 ? "bg-success" : "bg-danger";
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light d-flex flex-wrap justify-content-between align-items-center py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-file-invoice-dollar text-success me-2"></i>Financial Ledger</h5>
+                    <span class="badge @balanceBadgeClass fs-6 mt-2 mt-sm-0">Balance: @remainingBalance.ToString("C")</span>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <div class="row text-center mb-4">
+                        <div class="col-sm-4 mb-3 mb-sm-0">
+                            <p class="text-muted mb-1 text-uppercase small fw-bold">Total Billed</p>
+                            <h4 class="fw-bold mb-0">@totalBilled.ToString("C")</h4>
+                        </div>
+                        <div class="col-sm-4 border-sm-start border-sm-end mb-3 mb-sm-0">
+                            <p class="text-muted mb-1 text-uppercase small fw-bold">Total Paid</p>
+                            <h4 class="fw-bold text-success mb-0">@totalPaid.ToString("C")</h4>
+                        </div>
+                        <div class="col-sm-4">
+                            <p class="text-muted mb-1 text-uppercase small fw-bold">Amount Due</p>
+                            <h4 class="fw-bold text-danger mb-0">@remainingBalance.ToString("C")</h4>
+                        </div>
+                    </div>
+
+                    <hr class="mb-4" />
+
+                    <h6 class="fw-bold mb-3 text-muted text-uppercase">Transaction History</h6>
+                    
+                    @if (Model.Bills != null && Model.Bills.Any(b => b.Payments != null && b.Payments.Any()))
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted small text-uppercase">
+                                    <tr>
+                                        <th class="py-3">Date</th>
+                                        <th class="py-3">Method</th>
+                                        <th class="py-3">Notes / Txn ID</th>
+                                        <th class="text-end py-3">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var bill in Model.Bills)
+                                    {
+                                        @if (bill.Payments != null)
+                                        {
+                                            @foreach (var payment in bill.Payments.OrderByDescending(p => p.PaidAt))
+                                            {
+                                                <tr>
+                                                    <td>@payment.PaidAt.ToString("MMM dd, yyyy h:mm tt")</td>
+                                                    <td>
+                                                        <span class="badge bg-secondary bg-opacity-75">@payment.PaymentMethod</span>
+                                                    </td>
+                                                    <td class="text-muted small">
+                                                        @(string.IsNullOrEmpty(payment.StripeTransactionId) ? payment.Notes : payment.StripeTransactionId)
+                                                    </td>
+                                                    <td class="text-end fw-bold text-success">
+                                                        +@payment.Amount.ToString("C")
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning mb-0 text-center" role="alert">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i> No payments have been recorded for this reservation yet.
+                        </div>
+                    }
+                </div>
+                
+                @* STAFF ONLY: Show the 'Apply Payment' button if there is a balance owed. *@
+                @if (remainingBalance > 0 && (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Staff") || User.IsInRole("Employee")))
+                {
+                    <div class="card-footer bg-light text-end py-3">
+                        <a asp-controller="Payments" asp-action="Create" asp-route-reservationId="@Model.Id" class="btn btn-success fw-bold px-4">
+                            <i class="fa-solid fa-cash-register me-2"></i> Apply Payment
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 mb-5">
+        <a href="javascript:history.back()" class="btn btn-outline-secondary px-4">
+            <i class="fa-solid fa-arrow-left me-2"></i> Back
+        </a>
+    </div>
+</div>
