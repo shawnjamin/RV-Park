@@ -10,16 +10,47 @@
     <div class="row align-items-center">
         <div class="col-md-8">
             <h2 class="fw-bold mb-1">Available Campsites</h2>
-            <p class="text-muted mb-0">
-                Showing results for: 
-                <span class="fw-bold text-dark">@Context.Request.Query["checkIn"]</span> to 
-                <span class="fw-bold text-dark">@Context.Request.Query["checkOut"]</span>
-            </p>
-        </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Modify Search</a>
         </div>
     </div>
+</div>
+
+@* Date Selection *@
+<div class="bg-light p-4 rounded-3 shadow-sm mb-4 m-3">
+    <form asp-controller="RvSites" asp-action="Browse" method="get">
+        <div class="row g-3 align-items-end">
+                    
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Check-In</label>
+                <input type="date" name="checkIn" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+            </div>
+                    
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Check-Out</label>
+                <input type="date" name="checkOut" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+            </div>
+                    
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Site Type</label>
+                <select name="siteType" class="form-select">
+                    <option value="">Any Type</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Premium">Premium</option>
+                    <option value="Pull-Through">Pull-Through</option>
+                    <option value="Tent">Tent</option>
+                </select>
+            </div>
+                    
+            <div class="col-md-2">
+                <label class="form-label fw-bold">RV Length (ft)</label>
+                <input type="number" name="rvLength" class="form-control" placeholder="e.g. 30" />
+            </div>
+                    
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+                    
+        </div>
+    </form>
 </div>
 
 @* Results grid *@
