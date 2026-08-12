@@ -73,12 +73,14 @@ else
                                     </div>
                                 </div>
                                 
-                                @* Action buttons - Hidden if Cancelled *@
-                                <div class="col-md-4 text-md-end">
+                                @* Action buttons *@
+                                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                    <a asp-action="Details" asp-route-id="@res.Id" class="btn btn-outline-secondary mb-2 mb-md-0 me-md-2">Details</a>
+                                    
                                     @if (res.Status != RVPark.Models.ReservationStatus.Cancelled)
                                     {
                                         <a asp-action="EditMyTrip" asp-route-id="@res.Id" class="btn btn-outline-primary mb-2 mb-md-0 me-md-2">Modify</a>
-                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal-@res.Id">Cancel</button>
+                                        <button type="button" class="btn btn-outline-danger mb-2 mb-md-0" data-bs-toggle="modal" data-bs-target="#cancelModal-@res.Id">Cancel</button>
                                     }
                                 </div>
                                 
