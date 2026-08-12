@@ -25,6 +25,14 @@ public class EmployeeReservationFormViewModel
     [Display(Name = "Phone")]
     public string? NewCustomerPhone { get; set; }
 
+    [DataType(DataType.Password)]
+    [Display(Name = "Password")]
+    public string? NewCustomerPassword { get; set; }
+
+    [DataType(DataType.Password)]
+    [Display(Name = "Confirm Password")]
+    public string? NewCustomerConfirmPassword { get; set; }
+
     // Military Verification Flag
     [Display(Name = "Military ID Verified")]
     public bool IsMilitary { get; set; }
