@@ -103,18 +103,18 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="referenceNumber"
-                                   class="form-label fw-bold">
-                                Terminal / Authorization Reference
+                            <label class="form-label fw-bold">
+                                Authorization Reference
                             </label>
 
                             <input type="text"
-                                   id="referenceNumber"
-                                   name="referenceNumber"
-                                   class="form-control"
-                                   maxlength="100"
-                                   placeholder="Example: AUTH-123456"
-                                   required />
+                                class="form-control"
+                                value="@ViewBag.ReferenceNumber"
+                                readonly />
+
+                            <input type="hidden"
+                                name="referenceNumber"
+                                value="@ViewBag.ReferenceNumber" />
                         </div>
 
                         <div class="mb-4">

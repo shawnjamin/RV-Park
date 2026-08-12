@@ -194,14 +194,6 @@
                         <span asp-validation-for="PaymentMethod" class="text-danger"></span>
                     </div>
 
-                    <div id="manualCardSection" class="mb-4 d-none">
-                        <button type="button"
-                                class="btn btn-outline-primary w-100"
-                                id="manualCardButton">
-                            Go to Manual Card Entry
-                        </button>
-                    </div>
-
                     <div id="cashCalculatorSection" class="mb-4 d-none p-3 bg-white border rounded border-warning">
                         <h6 class="fw-bold mb-3"><i class="bi bi-calculator"></i> Cash Calculator</h6>
                         
@@ -272,12 +264,6 @@
                     $('#changeDueDisplay').text('$0.00');
                 }
 
-                // Manual Card
-                if (paymentMethod === 'Card') {
-                    $('#manualCardSection').removeClass('d-none');
-                } else {
-                    $('#manualCardSection').addClass('d-none');
-                }
             });
 
             $('#amountTendered').on('input', function() {
