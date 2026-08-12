@@ -242,7 +242,13 @@
                 allowClear: true
             });
 
-            // Toggle New Customer Fields based on dropdown
+            // Instantly hide the new customer fields on page load if an existing customer is selected.
+            // Using .hide() instead of .slideUp() ensures it vanishes instantly before the user even sees it.
+            if ($('#CustomerId').val()) {
+                $('#newCustomerFields').hide(); 
+            }
+
+            // Toggle New Customer Fields smoothly when the user actually changes the dropdown
             $('#CustomerId').on('change', function() {
                 if($(this).val()) {
                     $('#newCustomerFields').slideUp();
@@ -250,6 +256,9 @@
                     $('#newCustomerFields').slideDown();
                 }
             });
+
+            //Force the UI to sync with the dropdown state immediately on page reload
+            $('#CustomerId').trigger('change');
 
             // Cash Calculator Logic
             $('#paymentMethodSelect').on('change', function() {
