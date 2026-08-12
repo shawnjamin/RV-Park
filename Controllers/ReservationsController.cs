@@ -452,14 +452,13 @@ namespace RVPark.Controllers
                 };
 
                 _context.Payments.Add(payment);
-
-                // Card payment completed successfully
                 reservation.Status = ReservationStatus.Confirmed;
 
                 await _context.SaveChangesAsync();
+                await databaseTransaction.CommitAsync();
 
                 TempData["SuccessMessage"] =
-                    $"Card payment for reservation {reservation.ReservationNumber} was processed successfully.";
+                    $"{viewModel.PaymentMethod} payment for reservation {reservation.ReservationNumber} was processed successfully.";
 
                 return RedirectToAction(nameof(Details), new { id = reservation.Id });
             }
