@@ -403,6 +403,7 @@ namespace RVPark.Controllers
                 _context.Reservations.Add(reservation);
                 await _context.SaveChangesAsync();
 
+
                 // Linked Reservation Bill Generation
                 var bill = new Bill
                 {
@@ -416,21 +417,145 @@ namespace RVPark.Controllers
                 _context.Bills.Add(bill);
                 await _context.SaveChangesAsync();
 
-                // NO AUTOMATIC PAYMENT CREATION HERE ANYMORE.
-                // Employees will use the ledger page to log partial or full manual payments.
 
-                await databaseTransaction.CommitAsync();
+                // Card payments continue to manual card entry
+                if (viewModel.PaymentMethod == PaymentMethod.Card)
+                {
+                    await databaseTransaction.CommitAsync();
 
-                TempData["SuccessMessage"] = $"Reservation {reservation.ReservationNumber} created! Please process the payment below.";
-                
-                // UX FIX: Redirect straight to the Details page so they can use the "Apply Payment" button!
-                return RedirectToAction("Details", new { id = reservation.Id });
+                    return RedirectToAction(
+                        nameof(ManualCardEntry),
+                        new { reservationId = reservation.Id });
+                }
+
+
+                // Cash and Check payments are recorded immediately
+                var payment = new Payment
+                {
+                    BillId = bill.Id,
+                    PaymentMethod = viewModel.PaymentMethod,
+                    StripeTransactionId = null,
+                    Notes = viewModel.PaymentNotes,
+                    Amount = totalAmount,
+                    PaidAt = DateTime.UtcNow
+                };
+
+                _context.Payments.Add(payment);
+
+                // Card payment completed successfully
+                reservation.Status = ReservationStatus.Confirmed;
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] =
+                    $"Card payment for reservation {reservation.ReservationNumber} was processed successfully.";
+
+                return RedirectToAction(nameof(Details), new { id = reservation.Id });
             }
             catch
             {
                 await databaseTransaction.RollbackAsync();
                 throw;
             }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
+        public async Task<IActionResult> ManualCardEntry(int reservationId)
+        {
+            var reservation = await _context.Reservations
+                .FirstOrDefaultAsync(r => r.Id == reservationId);
+
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            var bill = await _context.Bills
+                .FirstOrDefaultAsync(b =>
+                    b.ReservationId == reservationId &&
+                    b.Type == BillType.SiteCharge);
+
+            if (bill == null)
+            {
+                return NotFound();
+            }
+
+            // Auto-generate authorization reference number
+            var referenceNumber =
+                $"AUTH-{Guid.NewGuid().ToString("N")[..8].ToUpperInvariant()}";
+
+            ViewBag.ReservationId = reservation.Id;
+            ViewBag.AmountDue = bill.Amount;
+            ViewBag.ReferenceNumber = referenceNumber;
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Staff, Employee, Manager, Admin")]
+        public async Task<IActionResult> ProcessManualCard(
+            int reservationId,
+            string cardholderName,
+            string lastFourDigits,
+            string referenceNumber,
+            string? paymentNotes)
+        {
+            var reservation = await _context.Reservations
+                .FirstOrDefaultAsync(r => r.Id == reservationId);
+
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            var bill = await _context.Bills
+                .FirstOrDefaultAsync(b =>
+                    b.ReservationId == reservationId &&
+                    b.Type == BillType.SiteCharge);
+
+            if (bill == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(cardholderName) ||
+                string.IsNullOrWhiteSpace(lastFourDigits) ||
+                lastFourDigits.Length != 4 ||
+                !lastFourDigits.All(char.IsDigit))
+            {
+                TempData["ErrorMessage"] =
+                    "Please enter valid card payment information.";
+
+                return RedirectToAction(
+                    nameof(ManualCardEntry),
+                    new { reservationId });
+            }
+
+            var payment = new Payment
+            {
+                BillId = bill.Id,
+                PaymentMethod = PaymentMethod.Card,
+                StripeTransactionId = null,
+                Amount = bill.Amount,
+                Notes =
+                    $"Cardholder: {cardholderName}; " +
+                    $"Card ending in {lastFourDigits}; " +
+                    $"Reference: {referenceNumber}" +
+                    (string.IsNullOrWhiteSpace(paymentNotes)
+                        ? ""
+                        : $"; Notes: {paymentNotes}"),
+                PaidAt = DateTime.UtcNow
+            };
+
+            _context.Payments.Add(payment);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] =
+                $"Card payment for reservation {reservation.ReservationNumber} was processed successfully.";
+
+            return RedirectToAction(nameof(Edit), new { id = reservation.Id });
         }
 
         // Live Pricing API Endpoint for Walk-In Form UI

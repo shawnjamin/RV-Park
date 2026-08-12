@@ -187,11 +187,9 @@
                         <label asp-for="PaymentMethod" class="form-label fw-bold"></label>
                         <select asp-for="PaymentMethod"
                                 asp-items="ViewBag.PaymentMethods"
-                                class="form-select border-primary" id="paymentMethodSelect">
+                                class="form-select border-primary"
+                                id="paymentMethodSelect">
                             <option value="">-- Select Payment Method --</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Check">Check</option>
-                            <option value="ManualCard">Manual Credit Card Entry</option>
                         </select>
                         <span asp-validation-for="PaymentMethod" class="text-danger"></span>
                     </div>
@@ -264,13 +262,17 @@
 
             // Cash Calculator Logic
             $('#paymentMethodSelect').on('change', function() {
-                if($(this).val() === 'Cash') {
+                const paymentMethod = $(this).val();
+
+                // Cash
+                if (paymentMethod === 'Cash') {
                     $('#cashCalculatorSection').removeClass('d-none');
                 } else {
                     $('#cashCalculatorSection').addClass('d-none');
                     $('#amountTendered').val('');
                     $('#changeDueDisplay').text('$0.00');
                 }
+
             });
 
             $('#amountTendered').on('input', function() {
