@@ -1,5 +1,6 @@
 using MailKit;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
@@ -55,8 +56,8 @@ public class MailService
             message.Body = bodyBuilder.ToMessageBody();
             // Set up SMTP Client
             SmtpClient client = new SmtpClient();
-            client.Connect(_mailSettings.Host, _mailSettings.Port, _mailSettings.UseSSL);
-            client.Authenticate(_mailSettings.EmailId, _mailSettings.Password);
+            client.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
+            client.Authenticate(_mailSettings.UserName, _mailSettings.Password);
             // Send email
             client.Send(message);
             client.Disconnect(true);
@@ -72,7 +73,7 @@ public class MailService
             // Fail
             EmailSent = false;
             ErrorMessage = "Failed to send email";
-            DebugMessage = $"Failed to send email\n Exception: {e}\n Message: {e.Data}";
+            DebugMessage = "Failed to send email\n Exception message: " + e.Message;
             Console.WriteLine(DebugMessage);
             return false;
         }

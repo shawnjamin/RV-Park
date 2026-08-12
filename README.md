@@ -128,3 +128,15 @@ Development use only.
 | Admin | `admin.avery@example.test` | `RVParkSeed123!` |
 | Manager | `manager.casey@example.test` | `RVParkSeed123!` |
 | Staff | `staff.riley@example.test` | `RVParkSeed123!` |
+
+
+#### Emails
+
+To avoid having to pay for an email server we are currently using a sandbox on mailtrap.io.
+Supporting actual emails would be great but that would require us to create a domain, set it 
+up for SMTP, and pay for a service like Mailtrap to send out emails. This doesn't make much
+sense to do for this class. The sandbox covers proof of email creation and sending working.
+
+Email credentials are contained in appsettings.json, and are automatically pulled in to be used
+at runtime via the MailSettings class. The MailService service is used to send the email via
+SMTP on port 587.

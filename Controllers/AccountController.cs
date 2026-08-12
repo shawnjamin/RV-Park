@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using RVPark.Data;
 using RVPark.Models;
 using RVPark.Services;
@@ -100,7 +101,8 @@ namespace RVPark.Controllers
             string password, 
             string confirmPassword, 
             [FromServices] ApplicationDbContext context, 
-            [FromServices] UserPasswordHasher hasher)
+            [FromServices] UserPasswordHasher hasher,
+            [FromServices] MailService mailService)
         {
             // Password match check
             if (password != confirmPassword)
@@ -155,6 +157,18 @@ namespace RVPark.Controllers
                 authProperties);
 
             TempData["SuccessMessage"] = "Account created successfully! Welcome to RV Park.";
+            
+            // Send email
+            var mailData = new MailData
+            {
+                EmailToId = userFromForm.Email,
+                EmailToName = userFromForm.FirstName,
+                EmailSubject = "Welcome to Hill Air Force Base RV Park!",
+                EmailBody = "Welcome, and thank you for signing up for the Hill Air Force Base RV Park Reservation System.\n\n" +
+                            "This email is being sent to confirm that you have signed up for our system. Feel free to log in and browse or create a reservation at any time!"
+            };
+            mailService.SendMail(mailData);
+            
             return RedirectToAction("MyReservations", "Reservations");
         }
 
