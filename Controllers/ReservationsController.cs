@@ -119,6 +119,9 @@ namespace RVPark.Controllers
                 return NotFound();
             }
 
+            // This edit form intentionally posts only editable reservation fields.
+            ModelState.Remove(nameof(Reservation.ReservationNumber));
+
             // Chronological Date Validation
             if (updateParams.EndDate.Date <= updateParams.StartDate.Date)
             {
