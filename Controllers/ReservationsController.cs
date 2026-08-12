@@ -5,6 +5,7 @@ using RVPark.Data;
 using RVPark.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace RVPark.Controllers
 {
@@ -252,7 +253,9 @@ namespace RVPark.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Staff, Employee, Manager, Admin")]
-        public async Task<IActionResult> EmployeeCreate(EmployeeReservationFormViewModel viewModel)
+        public async Task<IActionResult> EmployeeCreate(
+            EmployeeReservationFormViewModel viewModel,
+            [FromServices] IPasswordHasher<User> passwordHasher)
         {
             // Past Date Validation Check
             if (viewModel.StartDate.Date < DateTime.Today)
@@ -287,6 +290,9 @@ namespace RVPark.Controllers
                 if (string.IsNullOrWhiteSpace(viewModel.NewCustomerLastName)) ModelState.AddModelError(nameof(viewModel.NewCustomerLastName), "The customer's last name is required.");
                 if (string.IsNullOrWhiteSpace(viewModel.NewCustomerEmail)) ModelState.AddModelError(nameof(viewModel.NewCustomerEmail), "The customer's email is required.");
                 if (string.IsNullOrWhiteSpace(viewModel.NewCustomerPhone)) ModelState.AddModelError(nameof(viewModel.NewCustomerPhone), "The customer's phone number is required.");
+                if (string.IsNullOrWhiteSpace(viewModel.NewCustomerPassword)) ModelState.AddModelError(nameof(viewModel.NewCustomerPassword), "A password is required.");
+                if (string.IsNullOrWhiteSpace(viewModel.NewCustomerConfirmPassword)) ModelState.AddModelError(nameof(viewModel.NewCustomerConfirmPassword), "Password confirmation is required.");
+                else if (viewModel.NewCustomerPassword != viewModel.NewCustomerConfirmPassword) ModelState.AddModelError(nameof(viewModel.NewCustomerConfirmPassword), "Passwords do not match.");
 
                 // Email Duplication Check
                 if (!string.IsNullOrWhiteSpace(viewModel.NewCustomerEmail))
@@ -369,9 +375,11 @@ namespace RVPark.Controllers
                         Phone = viewModel.NewCustomerPhone!.Trim(),
                         AccessLevel = AccessLevel.Customer,
                         IsLocked = false,
-                        PasswordHash = $"TEMP-{Guid.NewGuid():N}",
+                        PasswordHash = string.Empty,
                         CreatedAt = DateTime.UtcNow
                     };
+
+                    newCustomer.PasswordHash = passwordHasher.HashPassword(newCustomer, viewModel.NewCustomerPassword!);
 
                     _context.Users.Add(newCustomer);
                     await _context.SaveChangesAsync();
@@ -444,14 +452,13 @@ namespace RVPark.Controllers
                 };
 
                 _context.Payments.Add(payment);
-
-                // Card payment completed successfully
                 reservation.Status = ReservationStatus.Confirmed;
 
                 await _context.SaveChangesAsync();
+                await databaseTransaction.CommitAsync();
 
                 TempData["SuccessMessage"] =
-                    $"Card payment for reservation {reservation.ReservationNumber} was processed successfully.";
+                    $"{viewModel.PaymentMethod} payment for reservation {reservation.ReservationNumber} was processed successfully.";
 
                 return RedirectToAction(nameof(Details), new { id = reservation.Id });
             }

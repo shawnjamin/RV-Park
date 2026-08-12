@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
 using RVPark.Models;
@@ -58,13 +59,31 @@ namespace RVPark.Controllers
         // POST: Employees/Create (Form Submission)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FirstName,LastName,Email,AccessLevel,IsLocked")] RVPark.Models.User userModel)
+        public async Task<IActionResult> Create(
+            [Bind("FirstName,LastName,Email,AccessLevel,IsLocked")] RVPark.Models.User userModel,
+            string? password,
+            string? confirmPassword,
+            [FromServices] IPasswordHasher<User> passwordHasher)
         {
             // Remove validation errors for properties not present in the Create form
             ModelState.Remove(nameof(userModel.PasswordHash));
             ModelState.Remove(nameof(userModel.CreatedAt));
             ModelState.Remove(nameof(userModel.Phone));
             ModelState.Remove("Reservations");
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                ModelState.AddModelError("password", "A password is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(confirmPassword))
+            {
+                ModelState.AddModelError("confirmPassword", "Password confirmation is required.");
+            }
+            else if (password != confirmPassword)
+            {
+                ModelState.AddModelError("confirmPassword", "Passwords do not match.");
+            }
 
             // Email uniqueness check
             if (!string.IsNullOrWhiteSpace(userModel.Email) &&
@@ -87,9 +106,11 @@ namespace RVPark.Controllers
                 Phone = userModel.Phone ?? string.Empty,
                 AccessLevel = userModel.AccessLevel,
                 IsLocked = userModel.IsLocked,
-                PasswordHash = $"TEMP-{Guid.NewGuid():N}",
+                PasswordHash = string.Empty,
                 CreatedAt = DateTime.UtcNow
             };
+
+            newEmployee.PasswordHash = passwordHasher.HashPassword(newEmployee, password!);
 
             _context.Users.Add(newEmployee);
             await _context.SaveChangesAsync();
