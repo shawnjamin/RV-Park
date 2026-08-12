@@ -30,6 +30,15 @@ namespace RVPark.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Browse(DateTime? checkIn, DateTime? checkOut, string? siteType, int? rvLength)
         {
+            if(checkIn.HasValue != checkOut.HasValue)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Please enter both a check-in and a check-out date."
+                );
+                return View(Array.Empty<Site>());
+            }
+
             if (checkIn.HasValue && checkOut.HasValue && checkOut.Value <= checkIn.Value)
             {
                 ModelState.AddModelError(
