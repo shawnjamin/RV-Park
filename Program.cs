@@ -47,6 +47,8 @@ builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailS
 
 // Register MailService
 builder.Services.AddTransient<MailService>();
+// Register StripeService
+builder.Services.AddTransient<StripeService>();
 
 var app = builder.Build();
 
