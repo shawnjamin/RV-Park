@@ -85,7 +85,7 @@
                         <div>
                             <span class="fs-5 fw-bold text-primary">$@site.SiteType?.Price</span><span class="small text-muted">/night</span>
                         </div>
-                        <a asp-controller="Reservations" asp-action="Create" asp-route-siteId="@site.Id" asp-route-checkIn="@Context.Request.Query["checkIn"]" asp-route-checkOut="@Context.Request.Query["checkOut"]" class="btn btn-primary">Book Now</a>
+                        <a asp-controller="Reservations" asp-action="Create" asp-route-site="@site" asp-route-checkIn="@Context.Request.Query["checkIn"]" asp-route-checkOut="@Context.Request.Query["checkOut"]" class="btn btn-primary">Book Now</a>
                     </div>
                     
                 </div>

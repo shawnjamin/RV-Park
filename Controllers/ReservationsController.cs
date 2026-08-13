@@ -4,7 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using RVPark.Data;
 using RVPark.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Stripe;
+using PaymentMethod = RVPark.Models.PaymentMethod;
 
 namespace RVPark.Controllers
 {
@@ -589,7 +593,7 @@ namespace RVPark.Controllers
         // Public Customer Checkout Page Loading
         [HttpGet]
         [Authorize(Roles = "Customer, Employee, Manager, Admin")] 
-        public async Task<IActionResult> Create(int siteId, string checkIn, string checkOut)
+        public async Task<IActionResult> Create(Site selectedSite, string checkIn, string checkOut)
         {
             // Query String Date Validation
             if (!DateTime.TryParse(checkIn, out DateTime startDate) || 
@@ -598,13 +602,9 @@ namespace RVPark.Controllers
                 TempData["ErrorMessage"] = "Please select a valid Check-In and Check-Out Date";
                 return RedirectToAction("Browse", "RVSites");
             }
-
-            // Checkout Page Site Information Retrieval
-            var site = await _context.Sites
-                .Include(s => s.SiteType)
-                .FirstOrDefaultAsync(s => s.Id == siteId);
-
-            if (site == null || !site.IsActive)
+            
+            // Confirm selected site is valid
+            if (selectedSite == null || !selectedSite.IsActive)
             {
                 TempData["ErrorMessage"] = "The selected site is no longer available.";
                 return RedirectToAction("Index", "Home");
@@ -612,7 +612,7 @@ namespace RVPark.Controllers
 
             // Double Booking Availability Verification
             var siteIsReserved = await _context.Reservations
-                .AnyAsync(r => r.SiteId == siteId &&
+                .AnyAsync(r => r.SiteId == selectedSite.Id &&
                                r.Status != ReservationStatus.Cancelled &&
                                r.Status != ReservationStatus.Completed &&
                                r.StartDate < endDate.Date &&
@@ -626,11 +626,11 @@ namespace RVPark.Controllers
 
             // Summary Card Cost Calculation
             var numberOfNights = (endDate.Date - startDate.Date).Days;
-            var nightlyRate = site.SiteType?.Price ?? 0;
+            var nightlyRate = selectedSite.SiteType?.Price ?? 0;
             var totalAmount = nightlyRate * numberOfNights;
 
             // View Data Assignment
-            ViewBag.Site = site;
+            ViewBag.Site = selectedSite;
             ViewBag.StartDate = startDate;
             ViewBag.EndDate = endDate;
             ViewBag.NumberOfNights = numberOfNights;
@@ -639,11 +639,21 @@ namespace RVPark.Controllers
             // Blank Reservation Model Initialization
             var reservation = new Reservation
             {
-                SiteId = siteId,
+                CustomerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),
+                Site = selectedSite,
+                SiteId = selectedSite.Id,
                 StartDate = startDate,
                 EndDate = endDate,
-                AdultCount = 1 
+                AdultCount = 1,
+                ChildCount = 0,
+                PetCount = 0
             };
+            reservation.Bills.Add(new Bill
+            {
+                ReservationId =  reservation.Id,
+                Amount = totalAmount,
+                Reservation = reservation
+            });
 
             return View(reservation);
         }
@@ -994,5 +1004,7 @@ namespace RVPark.Controllers
 
             return $"RES-{DateTime.UtcNow:yyyyMMdd}-{randomPart}";
         }
+        
+        
     }
 }
