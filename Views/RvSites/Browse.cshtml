@@ -99,11 +99,7 @@
                         <div>
                             <span class="fs-5 fw-bold text-primary">$@site.SiteType?.Price</span><span class="small text-muted">/night</span>
                         </div>
-                        <button type="button"
-                            class="btn btn-primary book-now-btn"
-                            data-site-id="@site.Id">
-                                Book Now
-                        </button>
+                        <a asp-controller="Reservations" asp-action="Create" asp-route-site="@site" asp-route-checkIn="@Context.Request.Query["checkIn"]" asp-route-checkOut="@Context.Request.Query["checkOut"]" class="btn btn-primary">Book Now</a>
                     </div>
                     
                 </div>
