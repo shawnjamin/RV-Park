@@ -21,12 +21,22 @@
                     
             <div class="col-md-3">
                 <label class="form-label fw-bold">Check-In</label>
-                <input type="date" name="checkIn" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                <input type="date"
+                    id="checkIn"
+                    name="checkIn"
+                    class="form-control"
+                    min="@DateTime.Now.ToString("yyyy-MM-dd")"
+                    value="@Context.Request.Query["checkIn"]" />
             </div>
                     
             <div class="col-md-3">
                 <label class="form-label fw-bold">Check-Out</label>
-                <input type="date" name="checkOut" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                <input type="date"
+                    id="checkOut"
+                    name="checkOut" 
+                    class="form-control"
+                    min="@DateTime.Now.ToString("yyyy-MM-dd")"
+                    value="@Context.Request.Query["checkOut"]" />
             </div>
                     
             <div class="col-md-3">
@@ -42,7 +52,11 @@
                     
             <div class="col-md-2">
                 <label class="form-label fw-bold">RV Length (ft)</label>
-                <input type="number" name="rvLength" class="form-control" placeholder="e.g. 30" />
+                <input type="number"
+                    name="rvLength"
+                    class="form-control"
+                    placeholder="e.g. 30"
+                    value="@Context.Request.Query["rvLength"]" />
             </div>
                     
             <div class="col-md-1">
@@ -85,7 +99,11 @@
                         <div>
                             <span class="fs-5 fw-bold text-primary">$@site.SiteType?.Price</span><span class="small text-muted">/night</span>
                         </div>
-                        <a asp-controller="Reservations" asp-action="Create" asp-route-siteId="@site.Id" asp-route-checkIn="@Context.Request.Query["checkIn"]" asp-route-checkOut="@Context.Request.Query["checkOut"]" class="btn btn-primary">Book Now</a>
+                        <button type="button"
+                            class="btn btn-primary book-now-btn"
+                            data-site-id="@site.Id">
+                                Book Now
+                        </button>
                     </div>
                     
                 </div>
@@ -102,3 +120,27 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.book-now-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const siteId = this.dataset.siteId;
+                const checkIn = document.getElementById('checkIn').value;
+                const checkOut = document.getElementById('checkOut').value;
+
+                if (!checkIn || !checkOut) {
+                    alert('Please select both a check-in and check-out date before booking.');
+                    return;
+                }
+
+                const url =
+                    `/Reservations/Create?siteId=${siteId}` +
+                    `&checkIn=${encodeURIComponent(checkIn)}` +
+                    `&checkOut=${encodeURIComponent(checkOut)}`;
+
+                window.location.href = url;
+            });
+        });
+    </script>
+}
