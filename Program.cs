@@ -6,6 +6,12 @@ using RVPark.Models;
 using RVPark.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Stripe;
+using System.Globalization;
+
+var culture = new CultureInfo("en-US");
+
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
 
 var seedRequested = args.Contains("--seed", StringComparer.OrdinalIgnoreCase);
 var builderArgs = args
