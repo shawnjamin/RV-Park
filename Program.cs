@@ -5,6 +5,7 @@ using RVPark.Data;
 using RVPark.Models;
 using RVPark.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Stripe;
 
 var seedRequested = args.Contains("--seed", StringComparer.OrdinalIgnoreCase);
 var builderArgs = args
@@ -47,6 +48,9 @@ builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailS
 
 // Register MailService
 builder.Services.AddTransient<MailService>();
+
+// Set Stripe API key
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 var app = builder.Build();
 

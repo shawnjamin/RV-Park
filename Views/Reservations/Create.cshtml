@@ -1,3 +1,7 @@
+@using RVPark.Controllers
+@using Stripe
+@model RVPark.Models.Reservation
+
 @{
     ViewData["Title"] = "Complete Reservation";
     Layout = "_Layout";
@@ -59,7 +63,7 @@
             </div>
 
             @* Submit button *@
-            <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">Proceed to Secure Payment</button>
+            <button asp-action="Buy" asp-controller="Stripe" asp-route-siteNumber="NONE" class="btn btn-primary btn-lg w-100 mt-3" type="submit">Proceed to Secure Payment</button>
         </form>
     </div>
 
@@ -95,7 +99,7 @@
                 <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3">
                     <span class="fw-bold fs-5">Total Cost</span>
                     @* TODO: Replace with dynamic total from backend *@
-                    <strong class="fs-4 text-success">$135.00</strong>
+                    <strong class="fs-4 text-success">$@Model.Bills.First().Amount.ToString()</strong>
                 </div>
             </div>
         </div>
