@@ -36,6 +36,16 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="password" class="form-label fw-bold">Password</label>
+                        <input type="password" id="password" name="password" autocomplete="new-password" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label fw-bold">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
                         <label asp-for="AccessLevel" class="form-label fw-bold">Role / Access Level</label>
                         <select asp-for="AccessLevel" class="form-select" asp-items="ViewBag.AccessLevels"></select>
                         <span asp-validation-for="AccessLevel" class="text-danger"></span>

@@ -90,6 +90,18 @@
                                 <input asp-for="NewCustomerPhone" type="tel" class="form-control" />
                                 <span asp-validation-for="NewCustomerPhone" class="text-danger"></span>
                             </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="NewCustomerPassword" class="form-label"></label>
+                                <input asp-for="NewCustomerPassword" type="password" autocomplete="new-password" class="form-control" />
+                                <span asp-validation-for="NewCustomerPassword" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="NewCustomerConfirmPassword" class="form-label"></label>
+                                <input asp-for="NewCustomerConfirmPassword" type="password" autocomplete="new-password" class="form-control" />
+                                <span asp-validation-for="NewCustomerConfirmPassword" class="text-danger"></span>
+                            </div>
                             
                             <div class="col-md-12 mt-3">
                                 <div class="form-check">
